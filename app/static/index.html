@@ -396,7 +396,10 @@
   <!-- Player -->
   <div class="player-section" id="playerSection">
     <div class="card">
-      <div class="card-title">Resultado</div>
+      <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+        Resultado
+        <span id="elapsedBadge" style="font-size:14px;font-weight:700;color:var(--green);background:var(--green-bg);padding:4px 12px;border-radius:6px;text-transform:none;letter-spacing:0;"></span>
+      </div>
       <audio id="audioPlayer" controls></audio>
       <div class="download-info">
         <span id="audioInfo"></span>
@@ -521,7 +524,7 @@ async function generate() {
     const blob = await r.blob();
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     const size = (blob.size / 1024).toFixed(0);
-    showAudio(blob, selectedFormat, `${size} KB | ${elapsed}s | ${selectedVoice} | ${speed}x`);
+    showAudio(blob, selectedFormat, `${size} KB | ${selectedVoice} | ${speed}x`, elapsed);
     showMsg('success', `Audio gerado em ${elapsed}s (${size} KB)`);
   } catch (e) {
     showMsg('error', `Erro: ${e.message}`);
@@ -555,7 +558,7 @@ async function generateStream() {
     const blob = await r.blob();
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     const size = (blob.size / 1024).toFixed(0);
-    showAudio(blob, 'mp3', `${size} KB | ${elapsed}s | streaming | ${selectedVoice} | ${speed}x`);
+    showAudio(blob, 'mp3', `${size} KB | streaming | ${selectedVoice} | ${speed}x`, elapsed);
     showMsg('success', `Streaming concluido em ${elapsed}s (${size} KB)`);
   } catch (e) {
     showMsg('error', `Erro: ${e.message}`);
@@ -565,16 +568,18 @@ async function generateStream() {
 }
 
 // --- Show audio player ---
-function showAudio(blob, format, info) {
+function showAudio(blob, format, info, elapsed) {
   const player = document.getElementById('audioPlayer');
   const section = document.getElementById('playerSection');
   const infoEl = document.getElementById('audioInfo');
   const dlLink = document.getElementById('downloadLink');
+  const badge = document.getElementById('elapsedBadge');
 
   const url = URL.createObjectURL(blob);
   player.src = url;
   player.play();
 
+  badge.textContent = `Gerado em ${elapsed}s`;
   infoEl.textContent = info;
   dlLink.href = url;
   dlLink.download = `audio.${format}`;
