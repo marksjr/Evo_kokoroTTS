@@ -1,8 +1,10 @@
 import io
 import struct
+
 import numpy as np
 from pydub import AudioSegment
-from app.core.config import SAMPLE_RATE, MP3_BITRATE, MP3_BITRATE_STREAM, CROSSFADE_MS, SILENCE_BETWEEN_CHUNKS_MS
+
+from app.core.config import CROSSFADE_MS, MP3_BITRATE, MP3_BITRATE_STREAM, SAMPLE_RATE, SILENCE_BETWEEN_CHUNKS_MS
 
 
 def numpy_to_wav_bytes(audio: np.ndarray) -> bytes:
@@ -17,8 +19,8 @@ def numpy_to_wav_bytes(audio: np.ndarray) -> bytes:
     buf.write(b"WAVE")
     buf.write(b"fmt ")
     buf.write(struct.pack("<I", 16))
-    buf.write(struct.pack("<H", 1))   # PCM
-    buf.write(struct.pack("<H", 1))   # mono
+    buf.write(struct.pack("<H", 1))
+    buf.write(struct.pack("<H", 1))
     buf.write(struct.pack("<I", SAMPLE_RATE))
     buf.write(struct.pack("<I", SAMPLE_RATE * 2))
     buf.write(struct.pack("<H", 2))
@@ -31,7 +33,7 @@ def numpy_to_wav_bytes(audio: np.ndarray) -> bytes:
 
 
 def normalize_audio(audio: np.ndarray, target_peak: float = 0.95) -> np.ndarray:
-    """Normaliza áudio para volume consistente."""
+    """Normaliza audio para volume consistente."""
     peak = np.max(np.abs(audio))
     if peak > 0:
         audio = audio * (target_peak / peak)
@@ -39,9 +41,7 @@ def normalize_audio(audio: np.ndarray, target_peak: float = 0.95) -> np.ndarray:
 
 
 def crossfade_chunks(chunks: list[np.ndarray], crossfade_samples: int = None) -> np.ndarray:
-    """Concatena chunks de áudio com crossfade suave para evitar cliques.
-    O silêncio entre chunks é inserido antes da região de crossfade,
-    de modo que a transição final fique natural sem pausas excessivas."""
+    """Concatena chunks de audio com crossfade suave."""
     if not chunks:
         return np.array([], dtype=np.float32)
     if len(chunks) == 1:
@@ -51,30 +51,24 @@ def crossfade_chunks(chunks: list[np.ndarray], crossfade_samples: int = None) ->
         crossfade_samples = int(SAMPLE_RATE * CROSSFADE_MS / 1000)
 
     silence_samples = int(SAMPLE_RATE * SILENCE_BETWEEN_CHUNKS_MS / 1000)
-
-    # Pré-calcular tamanho total para alocação única (evita concatenações repetidas)
-    total_len = sum(len(c) for c in chunks)
+    total_len = sum(len(chunk) for chunk in chunks)
     total_len += silence_samples * (len(chunks) - 1)
-    total_len -= crossfade_samples * (len(chunks) - 1)  # crossfade sobrepõe
+    total_len -= crossfade_samples * (len(chunks) - 1)
     result = np.zeros(total_len, dtype=np.float32)
 
     pos = len(chunks[0])
     result[:pos] = chunks[0]
 
     for chunk in chunks[1:]:
-        # Inserir silêncio entre frases
         pos += silence_samples
-
-        # Aplicar crossfade na junção
-        cf = min(crossfade_samples, pos, len(chunk))
-        if cf > 10:
-            fade_out = np.linspace(1.0, 0.0, cf, dtype=np.float32)
-            fade_in = np.linspace(0.0, 1.0, cf, dtype=np.float32)
-
-            result[pos - cf:pos] *= fade_out
-            result[pos - cf:pos] += chunk[:cf] * fade_in
-            result[pos:pos + len(chunk) - cf] = chunk[cf:]
-            pos += len(chunk) - cf
+        crossfade = min(crossfade_samples, pos, len(chunk))
+        if crossfade > 10:
+            fade_out = np.linspace(1.0, 0.0, crossfade, dtype=np.float32)
+            fade_in = np.linspace(0.0, 1.0, crossfade, dtype=np.float32)
+            result[pos - crossfade:pos] *= fade_out
+            result[pos - crossfade:pos] += chunk[:crossfade] * fade_in
+            result[pos:pos + len(chunk) - crossfade] = chunk[crossfade:]
+            pos += len(chunk) - crossfade
         else:
             result[pos:pos + len(chunk)] = chunk
             pos += len(chunk)
@@ -83,7 +77,7 @@ def crossfade_chunks(chunks: list[np.ndarray], crossfade_samples: int = None) ->
 
 
 def trim_silence(audio: np.ndarray, threshold: float = 0.01, pad_samples: int = 1200) -> np.ndarray:
-    """Remove silêncio excessivo do início e fim do áudio."""
+    """Remove silencio excessivo do inicio e fim do audio."""
     mask = np.abs(audio) > threshold
     if not mask.any():
         return audio
@@ -95,7 +89,7 @@ def trim_silence(audio: np.ndarray, threshold: float = 0.01, pad_samples: int = 
 
 
 def numpy_to_mp3_bytes(audio: np.ndarray, bitrate: str = None) -> bytes:
-    """Converte numpy array para bytes MP3 de alta qualidade."""
+    """Converte numpy array para bytes MP3."""
     if bitrate is None:
         bitrate = MP3_BITRATE
 
@@ -106,11 +100,19 @@ def numpy_to_mp3_bytes(audio: np.ndarray, bitrate: str = None) -> bytes:
         buf,
         format="mp3",
         bitrate=bitrate,
-        parameters=["-q:a", "0"],  # Máxima qualidade do encoder LAME
+        parameters=["-q:a", "0"],
     )
     return buf.getvalue()
 
 
 def numpy_to_mp3_chunk(audio: np.ndarray) -> bytes:
-    """Converte chunk de áudio numpy para MP3 (streaming)."""
+    """Converte chunk de audio numpy para MP3."""
     return numpy_to_mp3_bytes(audio, bitrate=MP3_BITRATE_STREAM)
+
+
+def mp3_bytes_to_wav_bytes(audio_bytes: bytes) -> bytes:
+    """Converte bytes MP3 para bytes WAV."""
+    segment = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
+    buf = io.BytesIO()
+    segment.export(buf, format="wav")
+    return buf.getvalue()

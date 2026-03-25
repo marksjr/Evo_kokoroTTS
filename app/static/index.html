@@ -32,8 +32,6 @@
     flex-direction: column;
     align-items: center;
   }
-
-  /* Header */
   .header {
     width: 100%;
     padding: 20px 32px;
@@ -64,8 +62,6 @@
   }
   @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
   .device-info { font-size: 12px; color: var(--text-muted); margin-left: 12px; }
-
-  /* Main */
   .container {
     width: 100%;
     max-width: 100%;
@@ -74,8 +70,6 @@
     flex-direction: column;
     gap: 24px;
   }
-
-  /* Card */
   .card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -90,8 +84,6 @@
     letter-spacing: .8px;
     margin-bottom: 16px;
   }
-
-  /* Textarea */
   textarea {
     width: 100%;
     min-height: 160px;
@@ -111,13 +103,9 @@
   .char-count { text-align: right; font-size: 12px; color: var(--text-muted); margin-top: 6px; }
   .char-count.warn { color: var(--orange); }
   .char-count.over { color: var(--red); }
-
-  /* Controls row */
-  .controls { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  @media (max-width: 600px) { .controls { grid-template-columns: 1fr; } }
-
+  .controls { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+  @media (max-width: 800px) { .controls { grid-template-columns: 1fr; } }
   label { display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
-
   select, input[type=range] {
     width: 100%;
     background: var(--surface2);
@@ -130,8 +118,12 @@
   }
   select:focus { outline: none; border-color: var(--accent); }
   select option { background: var(--surface2); color: var(--text); }
-
-  /* Range slider */
+  .hint {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .hint.warning { color: var(--orange); }
   .range-wrap { position: relative; }
   input[type=range] {
     -webkit-appearance: none;
@@ -165,12 +157,10 @@
     color: var(--text-muted);
     margin-top: 4px;
   }
-
-  /* Voice cards */
   .voice-options { display: flex; gap: 10px; flex-wrap: wrap; }
   .voice-option {
     flex: 1;
-    min-width: 100px;
+    min-width: 120px;
     padding: 12px 16px;
     border: 2px solid var(--border);
     border-radius: 10px;
@@ -183,8 +173,7 @@
   .voice-option.selected { border-color: var(--accent); background: var(--accent-glow); }
   .voice-option .name { font-weight: 700; font-size: 15px; }
   .voice-option .gender { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-
-  /* Buttons */
+  .voice-option .meta { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
   .actions { display: flex; gap: 12px; flex-wrap: wrap; }
   .btn {
     flex: 1;
@@ -204,12 +193,8 @@
   .btn:disabled { opacity: .5; cursor: not-allowed; }
   .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover:not(:disabled) { background: var(--accent-hover); transform: translateY(-1px); }
-  .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
-  .btn-secondary:hover:not(:disabled) { background: var(--border); }
   .btn-stream { background: #4ade80; color: #0f1117; }
   .btn-stream:hover:not(:disabled) { background: #6ee7a0; transform: translateY(-1px); }
-
-  /* Format toggle */
   .format-toggle { display: flex; gap: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
   .format-btn {
     padding: 10px 20px;
@@ -223,8 +208,6 @@
   }
   .format-btn.active { background: var(--accent); color: #fff; }
   .format-btn:hover:not(.active) { background: var(--border); color: var(--text); }
-
-  /* Progress */
   .progress-bar {
     width: 100%;
     height: 4px;
@@ -245,16 +228,8 @@
     0% { transform: translateX(-100%); }
     100% { transform: translateX(400%); }
   }
-
-  /* Audio player */
   .player-section { display: none; }
   .player-section.visible { display: block; }
-  .audio-player {
-    width: 100%;
-    margin-top: 8px;
-    border-radius: 8px;
-    outline: none;
-  }
   audio { width: 100%; }
   .download-info {
     display: flex;
@@ -263,6 +238,8 @@
     margin-top: 14px;
     font-size: 13px;
     color: var(--text-muted);
+    gap: 12px;
+    flex-wrap: wrap;
   }
   .download-link {
     display: inline-flex;
@@ -278,8 +255,6 @@
     transition: all .2s;
   }
   .download-link:hover { background: var(--accent-hover); transform: translateY(-1px); text-decoration: none; }
-
-  /* Log / status messages */
   .status-msg {
     padding: 10px 14px;
     border-radius: 8px;
@@ -290,8 +265,6 @@
   .status-msg.error { background: var(--red-bg); color: var(--red); }
   .status-msg.success { background: var(--green-bg); color: var(--green); }
   .status-msg.info { background: var(--accent-glow); color: var(--accent); }
-
-  /* Footer */
   .footer {
     margin-top: auto;
     padding: 20px;
@@ -305,8 +278,6 @@
 </style>
 </head>
 <body>
-
-<!-- Header -->
 <div class="header">
   <h1><span>Evo</span> KokoroTTS</h1>
   <div style="display:flex;align-items:center;">
@@ -318,52 +289,32 @@
   </div>
 </div>
 
-<!-- Main -->
 <div class="container">
-
-  <!-- Status message -->
   <div id="statusMsg" class="status-msg"></div>
 
-  <!-- Text input -->
   <div class="card">
     <div class="card-title">Texto</div>
-    <textarea id="textInput" placeholder="Digite ou cole seu texto em portugues aqui...&#10;&#10;Exemplo: Ola! Meu nome e Dora e estou testando o sistema de sintese de voz Kokoro." maxlength="10000"></textarea>
+    <textarea id="textInput" maxlength="10000"></textarea>
     <div id="charCount" class="char-count">0 / 10.000</div>
   </div>
 
-  <!-- Voice selection -->
-  <div class="card">
-    <div class="card-title">Voz</div>
-    <div class="voice-options" id="voiceOptions">
-      <div class="voice-option selected" data-voice="pf_dora" onclick="selectVoice(this)">
-        <div class="name">Dora</div>
-        <div class="gender">Feminina</div>
-      </div>
-      <div class="voice-option" data-voice="pm_alex" onclick="selectVoice(this)">
-        <div class="name">Alex</div>
-        <div class="gender">Masculina</div>
-      </div>
-      <div class="voice-option" data-voice="pm_santa" onclick="selectVoice(this)">
-        <div class="name">Santa</div>
-        <div class="gender">Masculina</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Controls -->
   <div class="card">
     <div class="controls">
-      <!-- Speed -->
+      <div>
+        <label for="languageSelect">Idioma</label>
+        <select id="languageSelect"></select>
+        <div id="languageHint" class="hint"></div>
+      </div>
+
       <div>
         <label>Velocidade</label>
         <div class="range-wrap">
           <input type="range" id="speedRange" min="0.5" max="2.0" step="0.1" value="1.0" oninput="updateSpeed()">
           <div class="range-value" id="speedValue">1.0x</div>
-          <div class="range-labels"><span>Lenta</span><span>Normal</span><span>Rapida</span></div>
+          <div class="range-labels"><span>Lenta</span><span>Normal</span><span>Rápida</span></div>
         </div>
       </div>
 
-      <!-- Format -->
       <div>
         <label>Formato</label>
         <div class="format-toggle" style="margin-top:8px;">
@@ -372,23 +323,39 @@
         </div>
       </div>
 
-      <!-- Info -->
       <div>
-        <label>Detalhes</label>
-        <div style="font-size:13px;color:var(--text-muted);margin-top:8px;line-height:1.8;">
-          <div>Sample Rate: <strong style="color:var(--text)">24 kHz</strong></div>
-          <div>Modelo: <strong style="color:var(--text)">Kokoro-82M</strong></div>
-          <div>Idioma: <strong style="color:var(--text)">pt-BR</strong></div>
+        <label>Pitch</label>
+        <div class="range-wrap">
+          <input type="range" id="pitchRange" min="-80" max="80" step="1" value="0" oninput="updatePitch()">
+          <div class="range-value" id="pitchValue">0 Hz</div>
+          <div class="range-labels"><span>Grave</span><span>Neutro</span><span>Aguda</span></div>
         </div>
+        <div id="pitchHint" class="hint">Ajuste fino de timbre. Funciona nas vozes Edge TTS.</div>
       </div>
     </div>
   </div>
 
-  <!-- Actions -->
+  <div class="card">
+    <div class="card-title">Voz</div>
+    <div class="voice-options" id="voiceOptions"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Detalhes</div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+      <div>Sample Rate: <strong style="color:var(--text)">24 kHz</strong></div>
+      <div>Modelo: <strong style="color:var(--text)">Kokoro-82M</strong></div>
+      <div>Idioma atual: <strong id="currentLanguageLabel" style="color:var(--text)">Português</strong></div>
+      <div>Voz atual: <strong id="currentVoiceLabel" style="color:var(--text)">Dora</strong></div>
+      <div>Engine atual: <strong id="currentEngineLabel" style="color:var(--text)">Kokoro</strong></div>
+      <div>Pitch atual: <strong id="currentPitchLabel" style="color:var(--text)">0 Hz</strong></div>
+    </div>
+  </div>
+
   <div class="actions">
     <button class="btn btn-primary" id="btnGenerate" onclick="generate()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Gerar Audio
+      Gerar Áudio
     </button>
     <button class="btn btn-stream" id="btnStream" onclick="generateStream()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg>
@@ -396,12 +363,10 @@
     </button>
   </div>
 
-  <!-- Progress -->
   <div class="progress-bar" id="progressBar">
     <div class="progress-fill"></div>
   </div>
 
-  <!-- Player -->
   <div class="player-section" id="playerSection">
     <div class="card">
       <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
@@ -411,27 +376,30 @@
       <audio id="audioPlayer" controls></audio>
       <div class="download-info">
         <span id="audioInfo"></span>
-        <a id="downloadLink" class="download-link" download><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Baixar audio</a>
+        <a id="downloadLink" class="download-link" download>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Baixar áudio
+        </a>
       </div>
     </div>
   </div>
-
 </div>
 
-<!-- Footer -->
 <div class="footer">
-  Evo KokoroTTS &bull; Modelo Kokoro-82M &bull; pt-BR &bull;
-  <a href="/docs" target="_blank">API Docs</a> &bull;
-  <a href="/doc.html" target="_blank">Documentacao</a>
+  Evo KokoroTTS • Modelo Kokoro-82M • Multilíngue •
+  <a href="/docs" target="_blank">API Docs</a> •
+  <a href="/doc.html" target="_blank">Documentação</a>
 </div>
 
 <script>
 const API = window.location.origin;
+let languages = [];
+let voices = [];
+let selectedLanguage = 'pt-br';
 let selectedVoice = 'pf_dora';
 let selectedFormat = 'mp3';
 let isGenerating = false;
 
-// --- Status check ---
 async function checkHealth() {
   const badge = document.getElementById('statusBadge');
   const text = document.getElementById('statusText');
@@ -442,8 +410,7 @@ async function checkHealth() {
     if (data.model_loaded) {
       badge.className = 'status-badge online';
       text.textContent = 'Online';
-      const gpu = data.device === 'cuda';
-      device.innerHTML = gpu
+      device.innerHTML = data.device === 'cuda'
         ? '<strong style="color:#4ade80">GPU (CUDA)</strong>'
         : '<strong style="color:#fb923c">CPU</strong>';
     } else {
@@ -460,57 +427,175 @@ async function checkHealth() {
   }
 }
 
-// --- Voice selection ---
-function selectVoice(el) {
-  document.querySelectorAll('.voice-option').forEach(v => v.classList.remove('selected'));
-  el.classList.add('selected');
-  selectedVoice = el.dataset.voice;
+async function loadCatalog() {
+  const [langResp, voiceResp] = await Promise.all([
+    fetch(`${API}/languages`),
+    fetch(`${API}/voices`),
+  ]);
+
+  languages = await langResp.json();
+  voices = await voiceResp.json();
+
+  renderLanguageOptions();
+  setLanguage(selectedLanguage);
 }
 
-// --- Format ---
+function renderLanguageOptions() {
+  const select = document.getElementById('languageSelect');
+  select.innerHTML = languages.map(lang => {
+    const suffix = lang.supported ? '' : ' (indisponível)';
+    return `<option value="${lang.id}">${lang.label}${suffix}</option>`;
+  }).join('');
+  select.value = selectedLanguage;
+}
+
+function setLanguage(languageId) {
+  selectedLanguage = languageId;
+  document.getElementById('languageSelect').value = languageId;
+  const lang = languages.find(item => item.id === languageId);
+  const hint = document.getElementById('languageHint');
+  const textarea = document.getElementById('textInput');
+  document.getElementById('currentLanguageLabel').textContent = lang ? lang.label : languageId;
+
+  if (!lang || !lang.supported) {
+    hint.className = 'hint warning';
+    hint.textContent = 'Este idioma não está disponível nesta instalação.';
+    textarea.placeholder = 'Selecione outro idioma disponível para gerar áudio.';
+    renderVoices([]);
+    selectedVoice = '';
+    document.getElementById('currentVoiceLabel').textContent = '-';
+    document.getElementById('currentEngineLabel').textContent = '-';
+    setPitchValue(0);
+    updatePitchAvailability();
+    updateActionAvailability();
+    return;
+  }
+
+  hint.className = 'hint';
+  hint.textContent = lang.sample_text;
+  textarea.placeholder = lang.sample_text;
+  if (!textarea.value.trim()) {
+    textarea.value = lang.sample_text;
+    updateCharCount();
+  }
+
+  const languageVoices = voices.filter(voice => voice.lang === languageId);
+  const nextVoice = languageVoices.find(voice => voice.id === selectedVoice)?.id || (languageVoices[0] && languageVoices[0].id) || '';
+  selectedVoice = nextVoice;
+  renderVoices(languageVoices);
+  applyVoiceDefaults(selectedVoice);
+  updateActionAvailability();
+}
+
+function renderVoices(voiceList) {
+  const container = document.getElementById('voiceOptions');
+  if (!voiceList.length) {
+    container.innerHTML = '<div class="hint warning">Nenhuma voz disponível para este idioma.</div>';
+    return;
+  }
+
+  container.innerHTML = voiceList.map(voice => `
+    <div class="voice-option ${voice.id === selectedVoice ? 'selected' : ''}" data-voice="${voice.id}" onclick="selectVoice('${voice.id}')">
+      <div class="name">${voice.name}</div>
+      <div class="gender">${capitalize(voice.gender)}</div>
+      <div class="meta">${voice.description} | ${voice.engine === 'edge' ? 'Edge TTS' : 'Kokoro'}${voice.default_speed ? ` | speed ${voice.default_speed.toFixed(2)}x` : ''}${voice.default_pitch ? ` | pitch ${voice.default_pitch > 0 ? '+' : ''}${voice.default_pitch} Hz` : ''}</div>
+    </div>
+  `).join('');
+
+  const currentVoice = voiceList.find(voice => voice.id === selectedVoice);
+  document.getElementById('currentVoiceLabel').textContent = currentVoice ? currentVoice.name : '-';
+  document.getElementById('currentEngineLabel').textContent = currentVoice ? (currentVoice.engine === 'edge' ? 'Edge TTS' : 'Kokoro') : '-';
+}
+
+function selectVoice(voiceId) {
+  selectedVoice = voiceId;
+  const visibleVoices = voices.filter(voice => voice.lang === selectedLanguage);
+  renderVoices(visibleVoices);
+  applyVoiceDefaults(voiceId);
+}
+
 function selectFormat(el) {
-  document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.format-btn').forEach(button => button.classList.remove('active'));
   el.classList.add('active');
   selectedFormat = el.dataset.format;
 }
 
-// --- Speed ---
 function updateSpeed() {
-  const v = document.getElementById('speedRange').value;
-  document.getElementById('speedValue').textContent = `${parseFloat(v).toFixed(1)}x`;
+  const value = document.getElementById('speedRange').value;
+  document.getElementById('speedValue').textContent = `${parseFloat(value).toFixed(1)}x`;
 }
 
-// --- Char count ---
-document.getElementById('textInput').addEventListener('input', function() {
-  const len = this.value.length;
+function updatePitch() {
+  const value = parseInt(document.getElementById('pitchRange').value, 10);
+  document.getElementById('pitchValue').textContent = `${value} Hz`;
+  document.getElementById('currentPitchLabel').textContent = `${value} Hz`;
+}
+
+function setPitchValue(value) {
+  document.getElementById('pitchRange').value = value;
+  updatePitch();
+}
+
+function updatePitchAvailability() {
+  const pitchRange = document.getElementById('pitchRange');
+  const pitchHint = document.getElementById('pitchHint');
+  const currentVoice = voices.find(voice => voice.id === selectedVoice);
+  const edgeVoice = currentVoice && currentVoice.engine === 'edge';
+
+  pitchRange.disabled = !edgeVoice;
+  pitchHint.className = edgeVoice ? 'hint' : 'hint warning';
+  pitchHint.textContent = edgeVoice
+    ? 'Ajuste fino de timbre. Valores positivos ajudam a aproximar vozes infantis.'
+    : 'Pitch está disponível apenas para vozes Edge TTS.';
+}
+
+function applyVoiceDefaults(voiceId) {
+  const voice = voices.find(item => item.id === voiceId);
+  const defaultSpeed = voice && typeof voice.default_speed === 'number' ? voice.default_speed : 1.0;
+  const defaultPitch = voice && Number.isInteger(voice.default_pitch) ? voice.default_pitch : 0;
+  document.getElementById('speedRange').value = defaultSpeed.toFixed(1);
+  updateSpeed();
+  setPitchValue(defaultPitch);
+  updatePitchAvailability();
+}
+
+function updateCharCount() {
+  const len = document.getElementById('textInput').value.length;
   const counter = document.getElementById('charCount');
   counter.textContent = `${len.toLocaleString('pt-BR')} / 10.000`;
   counter.className = 'char-count' + (len > 9500 ? ' over' : len > 8000 ? ' warn' : '');
-});
+}
 
-// --- Status message ---
+document.getElementById('textInput').addEventListener('input', updateCharCount);
+document.getElementById('languageSelect').addEventListener('change', (event) => setLanguage(event.target.value));
+
 function showMsg(type, msg) {
   const el = document.getElementById('statusMsg');
   el.className = `status-msg visible ${type}`;
   el.textContent = msg;
   if (type === 'success') setTimeout(() => el.classList.remove('visible'), 5000);
 }
+
 function hideMsg() {
   document.getElementById('statusMsg').classList.remove('visible');
 }
 
-// --- Set loading state ---
-function setLoading(loading) {
-  isGenerating = loading;
-  document.getElementById('btnGenerate').disabled = loading;
-  document.getElementById('btnStream').disabled = loading;
-  document.getElementById('progressBar').className = loading ? 'progress-bar active' : 'progress-bar';
+function updateActionAvailability() {
+  const disabled = !selectedVoice;
+  document.getElementById('btnGenerate').disabled = disabled || isGenerating;
+  document.getElementById('btnStream').disabled = disabled || isGenerating;
 }
 
-// --- Generate audio ---
+function setLoading(loading) {
+  isGenerating = loading;
+  document.getElementById('progressBar').className = loading ? 'progress-bar active' : 'progress-bar';
+  updateActionAvailability();
+}
+
 async function generate() {
   const text = document.getElementById('textInput').value.trim();
-  if (!text) { showMsg('error', 'Digite algum texto para gerar o audio.'); return; }
+  if (!selectedVoice) { showMsg('error', 'Selecione um idioma suportado e uma voz disponível.'); return; }
+  if (!text) { showMsg('error', 'Digite algum texto para gerar o áudio.'); return; }
 
   setLoading(true);
   hideMsg();
@@ -518,22 +603,23 @@ async function generate() {
 
   try {
     const speed = parseFloat(document.getElementById('speedRange').value);
-    const r = await fetch(`${API}/tts`, {
+    const pitch = parseInt(document.getElementById('pitchRange').value, 10);
+    const response = await fetch(`${API}/tts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ text, voice: selectedVoice, speed, format: selectedFormat }),
+      body: JSON.stringify({ text, voice: selectedVoice, speed, pitch, format: selectedFormat }),
     });
 
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({ detail: r.statusText }));
-      throw new Error(err.detail || `Erro ${r.status}`);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || `Erro ${response.status}`);
     }
 
-    const blob = await r.blob();
+    const blob = await response.blob();
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     const size = (blob.size / 1024).toFixed(0);
-    showAudio(blob, selectedFormat, `${size} KB | ${selectedVoice} | ${speed}x`, elapsed);
-    showMsg('success', `Audio gerado em ${elapsed}s (${size} KB)`);
+    showAudio(blob, selectedFormat, `${size} KB | ${selectedVoice} | ${speed}x | ${pitch} Hz`, elapsed);
+    showMsg('success', `Áudio gerado em ${elapsed}s (${size} KB)`);
   } catch (e) {
     showMsg('error', `Erro: ${e.message}`);
   } finally {
@@ -541,9 +627,9 @@ async function generate() {
   }
 }
 
-// --- Stream audio ---
 async function generateStream() {
   const text = document.getElementById('textInput').value.trim();
+  if (!selectedVoice) { showMsg('error', 'Selecione um idioma suportado e uma voz disponível.'); return; }
   if (!text) { showMsg('error', 'Digite algum texto para streaming.'); return; }
 
   setLoading(true);
@@ -552,22 +638,23 @@ async function generateStream() {
 
   try {
     const speed = parseFloat(document.getElementById('speedRange').value);
-    const r = await fetch(`${API}/tts/stream`, {
+    const pitch = parseInt(document.getElementById('pitchRange').value, 10);
+    const response = await fetch(`${API}/tts/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json; charset=utf-8' },
-      body: JSON.stringify({ text, voice: selectedVoice, speed }),
+      body: JSON.stringify({ text, voice: selectedVoice, speed, pitch }),
     });
 
-    if (!r.ok) {
-      const err = await r.json().catch(() => ({ detail: r.statusText }));
-      throw new Error(err.detail || `Erro ${r.status}`);
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: response.statusText }));
+      throw new Error(err.detail || `Erro ${response.status}`);
     }
 
-    const blob = await r.blob();
+    const blob = await response.blob();
     const elapsed = ((Date.now() - start) / 1000).toFixed(1);
     const size = (blob.size / 1024).toFixed(0);
-    showAudio(blob, 'mp3', `${size} KB | streaming | ${selectedVoice} | ${speed}x`, elapsed);
-    showMsg('success', `Streaming concluido em ${elapsed}s (${size} KB)`);
+    showAudio(blob, 'mp3', `${size} KB | streaming | ${selectedVoice} | ${speed}x | ${pitch} Hz`, elapsed);
+    showMsg('success', `Streaming concluído em ${elapsed}s (${size} KB)`);
   } catch (e) {
     showMsg('error', `Erro: ${e.message}`);
   } finally {
@@ -575,7 +662,6 @@ async function generateStream() {
   }
 }
 
-// --- Show audio player ---
 function showAudio(blob, format, info, elapsed) {
   const player = document.getElementById('audioPlayer');
   const section = document.getElementById('playerSection');
@@ -595,8 +681,15 @@ function showAudio(blob, format, info, elapsed) {
   section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
-// --- Init ---
+function capitalize(value) {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : '';
+}
+
 checkHealth();
+loadCatalog().catch((error) => showMsg('error', `Erro ao carregar idiomas: ${error.message}`));
+updateSpeed();
+updatePitch();
+updateCharCount();
 </script>
 </body>
 </html>

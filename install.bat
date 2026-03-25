@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul 2>&1
 setlocal enabledelayedexpansion
 title Evo KokoroTTS - Instalador
 
@@ -19,7 +20,6 @@ echo [1/6] Verificando Python...
 if exist "python_embedded\python.exe" (
     echo   Python embedded ja instalado.
     set "PYTHON=%~dp0python_embedded\python.exe"
-    set "PIP=%~dp0python_embedded\Scripts\pip.exe"
     goto :check_espeak
 )
 
@@ -59,6 +59,12 @@ if exist "%~dp0espeak-ng\espeak-ng.exe" (
     goto :check_ffmpeg
 )
 
+if exist "%~dp0espeak-ng\command_line\espeak-ng.exe" (
+    echo   espeak-ng encontrado localmente.
+    set "PATH=%~dp0espeak-ng\command_line;%PATH%"
+    goto :check_ffmpeg
+)
+
 echo.
 echo  ************************************************************
 echo  *  ATENCAO: espeak-ng NAO encontrado!                      *
@@ -69,6 +75,8 @@ echo  *  https://github.com/espeak-ng/espeak-ng/releases          *
 echo  *                                                           *
 echo  *  Baixe o arquivo .msi, instale, e marque a opcao          *
 echo  *  de adicionar ao PATH do sistema.                         *
+echo  *  Alternativa portable: extraia o espeak-ng em             *
+echo  *  .\espeak-ng\ ou .\espeak-ng\command_line\                *
 echo  ************************************************************
 echo.
 echo  Apos instalar o espeak-ng, execute este instalador novamente.
@@ -92,6 +100,12 @@ if %errorlevel% equ 0 (
 if exist "%~dp0ffmpeg\ffmpeg.exe" (
     echo   ffmpeg encontrado localmente.
     set "PATH=%~dp0ffmpeg;%PATH%"
+    goto :setup_venv
+)
+
+if exist "%~dp0ffmpeg\bin\ffmpeg.exe" (
+    echo   ffmpeg encontrado localmente.
+    set "PATH=%~dp0ffmpeg\bin;%PATH%"
     goto :setup_venv
 )
 
@@ -120,6 +134,10 @@ if defined USE_SYSTEM_PYTHON (
 echo.
 echo [5/6] Detectando hardware e instalando dependencias...
 
+echo   Atualizando pip...
+"%PYTHON%" -m pip install --upgrade pip setuptools wheel
+if errorlevel 1 call :fail "Falha ao atualizar pip/setuptools/wheel."
+
 :: Verificar se NVIDIA GPU esta presente
 set "HAS_GPU=0"
 nvidia-smi >nul 2>&1
@@ -129,20 +147,21 @@ if %errorlevel% equ 0 (
     echo   *** GPU NVIDIA detectada! ***
     echo   Instalando PyTorch com suporte CUDA...
     echo.
-    "%PYTHON%" -m pip install --upgrade pip >nul 2>&1
     "%PYTHON%" -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu128
+    if errorlevel 1 call :fail "Falha ao instalar PyTorch com CUDA."
 ) else (
     echo.
     echo   Nenhuma GPU NVIDIA detectada. Usando CPU.
     echo   Instalando PyTorch versao CPU (mais leve)...
     echo.
-    "%PYTHON%" -m pip install --upgrade pip >nul 2>&1
     "%PYTHON%" -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+    if errorlevel 1 call :fail "Falha ao instalar PyTorch para CPU."
 )
 
 echo.
 echo   Instalando dependencias do projeto...
 "%PYTHON%" -m pip install -r requirements.txt
+if errorlevel 1 call :fail "Falha ao instalar as dependencias do projeto."
 
 :: ============================================================
 :: 6. Verificar instalacao
@@ -151,8 +170,9 @@ echo.
 echo [6/6] Verificando instalacao...
 
 "%PYTHON%" -c "import torch; cuda='SIM - GPU sera usada!' if torch.cuda.is_available() else 'NAO - usando CPU'; print(f'  PyTorch: {torch.__version__}'); print(f'  CUDA: {cuda}')"
-"%PYTHON%" -c "import kokoro; print('  Kokoro: OK')" 2>nul || echo   Kokoro: Sera baixado no primeiro uso
+"%PYTHON%" -c "import kokoro; print('  Kokoro: OK')" 2>nul || echo   Kokoro: sera baixado no primeiro uso
 "%PYTHON%" -c "import fastapi; print('  FastAPI: OK')"
+"%PYTHON%" -c "import edge_tts; print('  Edge TTS: OK')"
 
 echo.
 echo  ====================================================
@@ -168,6 +188,13 @@ echo.
 pause
 exit /b 0
 
+:fail
+echo.
+echo  ERRO: %~1
+echo.
+pause
+exit /b 1
+
 :: ============================================================
 :: FUNCAO: Baixar Python Embedded
 :: ============================================================
@@ -175,20 +202,23 @@ exit /b 0
 echo   Baixando Python 3.11 Embedded...
 mkdir python_embedded 2>nul
 powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip' -OutFile 'python_embedded\python.zip' }"
+if errorlevel 1 call :fail "Falha ao baixar o Python Embedded."
 powershell -Command "Expand-Archive -Path 'python_embedded\python.zip' -DestinationPath 'python_embedded' -Force"
+if errorlevel 1 call :fail "Falha ao extrair o Python Embedded."
 del python_embedded\python.zip 2>nul
 
 :: Habilitar pip no embedded Python
 powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://bootstrap.pypa.io/get-pip.py' -OutFile 'python_embedded\get-pip.py' }"
+if errorlevel 1 call :fail "Falha ao baixar o instalador do pip."
 
 :: Descomentar import site no python311._pth
 powershell -Command "(Get-Content 'python_embedded\python311._pth') -replace '#import site','import site' | Set-Content 'python_embedded\python311._pth'"
 
 python_embedded\python.exe python_embedded\get-pip.py >nul 2>&1
+if errorlevel 1 call :fail "Falha ao instalar o pip no Python Embedded."
 del python_embedded\get-pip.py 2>nul
 
 set "PYTHON=%~dp0python_embedded\python.exe"
-set "PIP=%~dp0python_embedded\Scripts\pip.exe"
 echo   Python 3.11 Embedded instalado com sucesso.
 goto :eof
 
@@ -199,9 +229,12 @@ goto :eof
 echo   Baixando ffmpeg...
 mkdir ffmpeg 2>nul
 powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip' -OutFile 'ffmpeg\ffmpeg.zip' }"
+if errorlevel 1 call :fail "Falha ao baixar o ffmpeg."
 powershell -Command "Expand-Archive -Path 'ffmpeg\ffmpeg.zip' -DestinationPath 'ffmpeg\temp' -Force"
+if errorlevel 1 call :fail "Falha ao extrair o ffmpeg."
 :: Mover executaveis para pasta ffmpeg
 powershell -Command "Get-ChildItem 'ffmpeg\temp' -Recurse -Filter '*.exe' | Move-Item -Destination 'ffmpeg\' -Force"
+if errorlevel 1 call :fail "Falha ao preparar os executaveis do ffmpeg."
 rd /s /q ffmpeg\temp 2>nul
 del ffmpeg\ffmpeg.zip 2>nul
 set "PATH=%~dp0ffmpeg;%PATH%"

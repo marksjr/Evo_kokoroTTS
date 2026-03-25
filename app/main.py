@@ -1,15 +1,17 @@
 import logging
-import webbrowser
 import threading
-from pathlib import Path
+import webbrowser
 from contextlib import asynccontextmanager
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
+
 from app.api.routes import router
+from app.core.config import DEVICE, HOST, PORT
 from app.services.tts_service import tts_service
-from app.core.config import HOST, PORT, DEVICE
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,7 +39,11 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Evo KokoroTTS",
-    description="API local de Text-to-Speech pt-BR usando Kokoro-82M",
+    description=(
+        "API local de Text-to-Speech multilíngue com Kokoro-82M e Edge TTS. "
+        "Suporta catálogo de idiomas, vozes por engine, geração completa em MP3/WAV, "
+        "streaming em MP3 e ajuste de pitch para vozes Edge, incluindo presets infantis."
+    ),
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -67,9 +73,9 @@ async def doc_page():
     return {"error": "doc.html não encontrado"}
 
 
-# Servir arquivos estáticos (CSS, JS, imagens futuras)
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run("app.main:app", host=HOST, port=PORT, reload=False, workers=1)

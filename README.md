@@ -1,21 +1,21 @@
 # Evo KokoroTTS
 
-API local de **Text-to-Speech em Portugues Brasileiro** usando o modelo **Kokoro-82M**.
+API local de **Text-to-Speech multilingue** usando **Kokoro-82M** e vozes complementares via **Edge TTS**.
 
 Converta texto em audio de alta qualidade com multiplas vozes, controle de velocidade e streaming em tempo real. Interface web inclusa, sem necessidade de conhecimento tecnico.
-
-![Interface Web](screenshots/interface.png)
 
 ---
 
 ## Recursos
 
-- **3 vozes pt-BR** - Dora (feminina), Alex e Santa (masculinas)
-- **Interface web** - Abre automaticamente no navegador, pronta para usar
+- **Multilingue** - `pt-br`, `en-us`, `es-es`, `fr-fr`, `ja-jp` e `de-de`
+- **Kokoro + Edge TTS** - Seleciona a engine automaticamente conforme a voz
+- **Interface web** - Abre no navegador local, pronta para uso
 - **API REST** completa com documentacao Swagger interativa
 - **Streaming em tempo real** - Receba o audio enquanto esta sendo gerado
 - **Deteccao automatica GPU/CPU** - Usa placa de video NVIDIA se disponivel
-- **Instalacao one-click** - Um unico `install.bat` instala tudo
+- **Bootstrap local** - `install.bat` prepara Python, ffmpeg, PyTorch e dependencias
+- **Formato portatil** - Tambem aceita `ffmpeg` e `espeak-ng` dentro da pasta do projeto
 - **Formatos MP3 e WAV** - MP3 a 320kbps ou WAV 16-bit PCM
 - **Otimizado para pt-BR** - Pre-processamento de acentos, abreviacoes, moedas, ordinais
 
@@ -26,10 +26,17 @@ Converta texto em audio de alta qualidade com multiplas vozes, controle de veloc
 ### Requisitos
 
 - **Windows 10/11** (64-bit)
-- **espeak-ng** - Baixe e instale de: https://github.com/espeak-ng/espeak-ng/releases
-  - Baixe o arquivo `.msi`, instale e marque a opcao de adicionar ao PATH
+- **espeak-ng** - necessario para a sintese Kokoro
 
-> Python, ffmpeg e PyTorch sao instalados automaticamente pelo instalador.
+O instalador ja cuida de:
+- Python (ou usa o Python existente)
+- ffmpeg
+- PyTorch CPU ou CUDA
+- dependencias Python do projeto
+
+Para o `espeak-ng`, ha dois jeitos suportados:
+- instalar no Windows e adicionar ao `PATH`
+- usar de forma portable extraindo em `.\espeak-ng\` ou `.\espeak-ng\command_line\`
 
 ### Passo a passo
 
@@ -37,7 +44,9 @@ Converta texto em audio de alta qualidade com multiplas vozes, controle de veloc
 1. Baixe ou clone o repositorio
    git clone https://github.com/marksjr/Evo_kokoroTTS.git
 
-2. Instale o espeak-ng (link acima)
+2. Prepare o espeak-ng
+   - Opcao A: instale no Windows a partir de https://github.com/espeak-ng/espeak-ng/releases
+   - Opcao B: extraia uma copia portable em `.\espeak-ng\` ou `.\espeak-ng\command_line\`
 
 3. Execute o instalador (duplo-clique)
    install.bat
@@ -50,6 +59,7 @@ O instalador detecta automaticamente:
 - Se voce tem **Python** instalado (senao, baixa Python Embedded automaticamente)
 - Se voce tem **ffmpeg** (senao, baixa automaticamente)
 - Se voce tem **GPU NVIDIA** (instala PyTorch CUDA) ou **apenas CPU** (instala versao leve)
+- Se `ffmpeg` e `espeak-ng` estao no sistema ou em pastas locais do projeto
 
 Apos iniciar com `run-kokoro.bat`, a interface web abre automaticamente no navegador.
 
@@ -59,13 +69,13 @@ Apos iniciar com `run-kokoro.bat`, a interface web abre automaticamente no naveg
 
 Acesse `http://localhost:8880` apos iniciar o servidor.
 
-![Interface Web](screenshots/interface.png)
-
 | Funcao | Descricao |
 |--------|-----------|
 | **Texto** | Digite ou cole ate 10.000 caracteres |
-| **Voz** | Escolha entre Dora, Alex ou Santa |
+| **Idioma** | Escolha entre os idiomas disponiveis no catalogo |
+| **Voz** | Escolha uma voz compativel com o idioma selecionado |
 | **Velocidade** | De 0.5x (lenta) a 2.0x (rapida) |
+| **Pitch** | Ajuste fino para vozes Edge TTS |
 | **Formato** | MP3 (320kbps) ou WAV (PCM 16-bit) |
 | **Gerar Audio** | Gera o audio completo e reproduz |
 | **Streaming** | Gera e envia em tempo real |
@@ -81,13 +91,12 @@ O status no canto superior direito mostra:
 
 Documentacao interativa disponivel em `http://localhost:8880/docs` (Swagger UI).
 
-![Swagger UI](screenshots/swagger.png)
-
 ### Endpoints
 
 | Metodo | Rota | Descricao |
 |--------|------|-----------|
 | `GET` | `/health` | Status da API (online, device, modelo) |
+| `GET` | `/languages` | Lista idiomas disponiveis |
 | `GET` | `/voices` | Lista vozes disponiveis |
 | `POST` | `/tts` | Gera audio completo (MP3 ou WAV) |
 | `POST` | `/tts/stream` | Streaming de audio em tempo real |
@@ -106,8 +115,9 @@ Documentacao interativa disponivel em `http://localhost:8880/docs` (Swagger UI).
 | Campo | Tipo | Obrigatorio | Padrao | Descricao |
 |-------|------|:-----------:|--------|-----------|
 | `text` | string | **Sim** | - | Texto para sintetizar (1 a 10.000 caracteres) |
-| `voice` | string | Nao | `pf_dora` | `pf_dora`, `pm_alex` ou `pm_santa` |
+| `voice` | string | Nao | `pf_dora` | ID da voz. Use `GET /voices` para listar o catalogo completo |
 | `speed` | float | Nao | `1.0` | Velocidade: `0.5` (lenta) a `2.0` (rapida) |
+| `pitch` | int | Nao | `0` | Ajuste de pitch em Hz para vozes Edge (`-80` a `80`) |
 | `format` | string | Nao | `mp3` | `mp3` (320kbps) ou `wav` (PCM 16-bit) |
 
 ### POST /tts/stream - Streaming
@@ -123,8 +133,9 @@ Documentacao interativa disponivel em `http://localhost:8880/docs` (Swagger UI).
 | Campo | Tipo | Obrigatorio | Padrao | Descricao |
 |-------|------|:-----------:|--------|-----------|
 | `text` | string | **Sim** | - | Texto para sintetizar (1 a 10.000 caracteres) |
-| `voice` | string | Nao | `pf_dora` | `pf_dora`, `pm_alex` ou `pm_santa` |
+| `voice` | string | Nao | `pf_dora` | ID da voz. Use `GET /voices` para listar o catalogo completo |
 | `speed` | float | Nao | `1.0` | Velocidade: `0.5` a `2.0` |
+| `pitch` | int | Nao | `0` | Ajuste de pitch em Hz para vozes Edge (`-80` a `80`) |
 
 Resposta: streaming MP3 a 256kbps (chunked transfer).
 
@@ -136,16 +147,28 @@ Resposta: streaming MP3 a 256kbps (chunked transfer).
 # Verificar status
 curl http://localhost:8880/health
 
+# Listar idiomas
+curl http://localhost:8880/languages
+
+# Listar vozes
+curl http://localhost:8880/voices
+
 # Gerar MP3 (minimo)
 curl -X POST http://localhost:8880/tts \
   -H "Content-Type: application/json" \
   -d '{"text":"Ola, mundo!"}' \
   --output audio.mp3
 
-# Gerar com voz masculina, velocidade 1.2x
+# Gerar em ingles
 curl -X POST http://localhost:8880/tts \
   -H "Content-Type: application/json" \
-  -d '{"text":"Testando a API.","voice":"pm_alex","speed":1.2}' \
+  -d '{"text":"Hello from Evo KokoroTTS.","voice":"af_bella","speed":1.0,"format":"mp3"}' \
+  --output english.mp3
+
+# Gerar com voz Edge e pitch
+curl -X POST http://localhost:8880/tts \
+  -H "Content-Type: application/json" \
+  -d '{"text":"Testando a API.","voice":"pt_f_menina","speed":1.08,"pitch":46}' \
   --output audio.mp3
 
 # Gerar WAV
@@ -163,13 +186,18 @@ curl -X POST http://localhost:8880/tts/stream \
 
 ---
 
-## Vozes disponiveis
+## Idiomas e vozes
 
-| ID | Nome | Genero | Descricao |
-|----|------|--------|-----------|
-| `pf_dora` | Dora | Feminino | Voz feminina brasileira (padrao) |
-| `pm_alex` | Alex | Masculino | Voz masculina brasileira |
-| `pm_santa` | Santa | Masculino | Voz masculina brasileira |
+Use `GET /languages` para ver os idiomas ativos e `GET /voices` para obter o catalogo completo. O idioma e definido pela `voice` escolhida.
+
+| Idioma | Exemplos de vozes |
+|--------|-------------------|
+| `pt-br` | `pf_dora`, `pm_alex`, `pm_santa`, `pt_f_menina`, `pt_m_menino` |
+| `en-us` | `af_bella`, `am_adam`, `bf_emma`, `bm_george` |
+| `es-es` | `ef_dora`, `em_alex`, `em_santa` |
+| `fr-fr` | `ff_siwis` |
+| `ja-jp` | `jf_alpha`, `jm_kumo` |
+| `de-de` | `de_f_katja`, `de_m_conrad`, `de_f_leni`, `de_m_jonas` |
 
 ---
 
@@ -180,10 +208,9 @@ Acesse `http://localhost:8880/doc.html` para a documentacao detalhada com:
 - Especificacoes tecnicas (sample rate, bitrate, formatos)
 - Pipeline de processamento completo
 - Pre-processamento automatico de pt-BR
+- Como selecionar outros idiomas
 - Exemplos em cURL, JavaScript, Python e PHP
 - Codigos de erro e limites
-
-![Documentacao](screenshots/docs.png)
 
 ---
 
