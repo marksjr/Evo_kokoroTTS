@@ -14,7 +14,6 @@ router = APIRouter()
     "/health",
     response_model=HealthResponse,
     summary="Verificar status da API",
-    description="Retorna o status atual da API, o dispositivo em uso e se o pipeline padrão do Kokoro já foi carregado.",
 )
 async def health():
     return HealthResponse(
@@ -27,8 +26,7 @@ async def health():
 @router.get(
     "/languages",
     response_model=list[LanguageInfo],
-    summary="Listar idiomas disponíveis",
-    description="Retorna todos os idiomas disponíveis na instalação atual, incluindo idiomas atendidos por Kokoro e Edge TTS.",
+    summary="Listar idiomas disponiveis",
 )
 async def list_languages():
     return [LanguageInfo(**lang) for lang in tts_service.get_languages()]
@@ -37,32 +35,44 @@ async def list_languages():
 @router.get(
     "/voices",
     response_model=list[VoiceInfo],
-    summary="Listar vozes disponíveis",
-    description="Retorna o catálogo completo de vozes, incluindo engine, idioma e presets sugeridos de speed e pitch.",
+    summary="Listar vozes disponiveis",
 )
 async def list_voices():
     return [VoiceInfo(**voice) for voice in tts_service.get_voices()]
 
 
-def _validate_voice_or_raise(voice: str) -> None:
+def _validate_request(voice: str) -> None:
     if not tts_service.validate_voice(voice):
-        raise HTTPException(400, f"Voz '{voice}' não disponível. Use GET /voices.")
+        raise HTTPException(
+            status_code=404,
+            detail=f"Voz '{voice}' nao encontrada. Consulte /voices para a lista completa.",
+        )
     if not tts_service.language_supported_for_voice(voice):
-        raise HTTPException(400, "Idioma selecionado não é suportado pela versão instalada do Kokoro.")
+        raise HTTPException(
+            status_code=400,
+            detail=f"O idioma da voz '{voice}' nao e suportado pela instalacao atual do Kokoro.",
+        )
+
+    available, availability_error = tts_service.get_voice_availability(voice)
+    if not available:
+        raise HTTPException(
+            status_code=400,
+            detail=availability_error or f"A voz '{voice}' nao esta pronta para uso.",
+        )
 
 
 @router.post(
     "/tts",
-    summary="Gerar áudio completo",
-    description="Sintetiza o texto inteiro e retorna um arquivo MP3 ou WAV. Para vozes Edge, speed=1.0 e pitch=0 aplicam os presets default da voz quando definidos.",
+    summary="Gerar audio completo",
     responses={
-        200: {"description": "Áudio gerado com sucesso."},
-        400: {"description": "Parâmetros inválidos ou voz indisponível."},
-        500: {"description": "Falha interna durante a geração."},
+        200: {"description": "Audio gerado com sucesso."},
+        400: {"description": "Erro na requisicao ou voz indisponivel."},
+        404: {"description": "Voz nao encontrada."},
+        500: {"description": "Erro interno no processamento."},
     },
 )
 async def text_to_speech(req: TTSRequest):
-    _validate_voice_or_raise(req.voice)
+    _validate_request(req.voice)
 
     try:
         audio_bytes = await tts_service.generate(
@@ -72,9 +82,11 @@ async def text_to_speech(req: TTSRequest):
             pitch=req.pitch,
             fmt=req.format,
         )
-    except Exception as e:
-        logger.exception("Erro na geração de áudio")
-        raise HTTPException(500, f"Erro na geração: {str(e)}")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    except Exception:
+        logger.exception("Erro inesperado na geracao de audio (voz: %s)", req.voice)
+        raise HTTPException(status_code=500, detail="Erro interno ao sintetizar o audio.")
 
     media_type = "audio/mpeg" if req.format == "mp3" else "audio/wav"
     return Response(
@@ -86,25 +98,27 @@ async def text_to_speech(req: TTSRequest):
 
 @router.post(
     "/tts/stream",
-    summary="Gerar áudio por streaming",
-    description="Sintetiza e retorna o áudio em fluxo MP3. Para vozes Edge, speed=1.0 e pitch=0 aplicam os presets default da voz quando definidos.",
+    summary="Gerar audio por streaming",
     responses={
-        200: {"description": "Stream de áudio iniciado com sucesso."},
-        400: {"description": "Parâmetros inválidos ou voz indisponível."},
-        500: {"description": "Falha interna durante a geração."},
+        200: {"description": "Stream de audio iniciado."},
+        400: {"description": "Erro na requisicao."},
+        404: {"description": "Voz nao encontrada."},
     },
 )
 async def text_to_speech_stream(req: TTSStreamRequest):
-    _validate_voice_or_raise(req.voice)
+    _validate_request(req.voice)
 
     async def audio_generator():
-        async for chunk in tts_service.generate_stream(
-            text=req.text,
-            voice=req.voice,
-            speed=req.speed,
-            pitch=req.pitch,
-        ):
-            yield chunk
+        try:
+            async for chunk in tts_service.generate_stream(
+                text=req.text,
+                voice=req.voice,
+                speed=req.speed,
+                pitch=req.pitch,
+            ):
+                yield chunk
+        except Exception as exc:
+            logger.error("Erro durante o streaming de audio: %s", exc)
 
     return StreamingResponse(
         audio_generator(),

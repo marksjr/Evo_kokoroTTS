@@ -6,3 +6,7 @@ numpy>=1.26.0
 pydub>=0.25.1
 torch>=2.0.0
 edge-tts>=7.2.8
+ordered-set>=4.1.0
+pypinyin>=0.55.0
+cn2an>=0.5.23
+jieba>=0.42.1

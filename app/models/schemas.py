@@ -9,11 +9,11 @@ class TTSRequest(BaseModel):
         min_length=1,
         max_length=10000,
         description="Texto para sintetizar.",
-        examples=["Olá! Este é um teste de síntese de voz infantil em português."],
+        examples=["Ola! Este e um teste de sintese de voz infantil em portugues."],
     )
     voice: str = Field(
         default="pf_dora",
-        description="ID da voz. Use GET /voices para listar todas as opções.",
+        description="ID da voz. Use GET /voices para listar todas as opcoes.",
         examples=["pt_f_menina"],
     )
     speed: float = Field(
@@ -32,7 +32,7 @@ class TTSRequest(BaseModel):
     )
     format: Literal["mp3", "wav"] = Field(
         default="mp3",
-        description="Formato de saída.",
+        description="Formato de saida.",
         examples=["mp3"],
     )
 
@@ -47,7 +47,7 @@ class TTSStreamRequest(BaseModel):
     )
     voice: str = Field(
         default="pf_dora",
-        description="ID da voz. Use GET /voices para listar todas as opções.",
+        description="ID da voz. Use GET /voices para listar todas as opcoes.",
         examples=["pt_m_menino"],
     )
     speed: float = Field(
@@ -68,26 +68,28 @@ class TTSStreamRequest(BaseModel):
 
 class HealthResponse(BaseModel):
     status: str = Field(description="Estado da API: ok ou loading.")
-    device: str = Field(description="Dispositivo atual de inferência: cuda ou cpu.")
-    model_loaded: bool = Field(description="Indica se o pipeline Kokoro padrão já foi carregado.")
+    device: str = Field(description="Dispositivo atual de inferencia: cuda ou cpu.")
+    model_loaded: bool = Field(description="Indica se o pipeline padrao do Kokoro ja foi carregado.")
 
 
 class LanguageInfo(BaseModel):
     id: str = Field(description="ID normalizado do idioma.")
     name: str = Field(description="Nome nativo do idioma.")
-    label: str = Field(description="Rótulo amigável para UI.")
-    kokoro_code: str | None = Field(default=None, description="Código de idioma usado pelo Kokoro, quando aplicável.")
-    supported: bool = Field(description="Indica se o idioma está disponível nesta instalação.")
-    sample_text: str = Field(description="Texto de exemplo para teste rápido.")
+    label: str = Field(description="Rotulo amigavel para UI.")
+    kokoro_code: str | None = Field(default=None, description="Codigo de idioma usado pelo Kokoro, quando aplicavel.")
+    supported: bool = Field(description="Indica se o idioma esta disponivel nesta instalacao.")
+    sample_text: str = Field(description="Texto de exemplo para teste rapido.")
 
 
 class VoiceInfo(BaseModel):
     id: str = Field(description="ID da voz.")
     name: str = Field(description="Nome curto exibido na UI.")
-    gender: str = Field(description="Gênero da voz.")
+    gender: str = Field(description="Genero da voz.")
     lang: str = Field(description="Idioma da voz.")
-    lang_code: str | None = Field(default=None, description="Código de idioma usado pelo Kokoro, quando aplicável.")
-    engine: str = Field(description="Engine responsável pela síntese: kokoro ou edge.")
+    lang_code: str | None = Field(default=None, description="Codigo de idioma usado pelo Kokoro, quando aplicavel.")
+    engine: str = Field(description="Engine responsavel pela sintese: kokoro ou edge.")
     default_speed: float | None = Field(default=None, description="Preset sugerido de velocidade para a voz.")
     default_pitch: int | None = Field(default=None, description="Preset sugerido de pitch em Hz para a voz.")
-    description: str = Field(description="Descrição curta da voz.")
+    available: bool = Field(default=True, description="Indica se a voz esta pronta para uso local.")
+    availability_error: str | None = Field(default=None, description="Motivo da indisponibilidade local, quando houver.")
+    description: str = Field(description="Descricao curta da voz.")
