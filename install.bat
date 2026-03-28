@@ -15,6 +15,9 @@ echo.
 
 cd /d "%~dp0"
 set "ESPEAK_RELEASES_URL=https://github.com/espeak-ng/espeak-ng/releases"
+set "ESPEAK_API_URL=https://api.github.com/repos/espeak-ng/espeak-ng/releases/latest"
+set "ESPEAK_PORTABLE_ROOT=%~dp0espeak-ng"
+set "ESPEAK_PORTABLE_DIR=%~dp0espeak-ng\eSpeak NG"
 
 :: ============================================================
 :: 1. Verificar se Python ja existe (sistema ou embedded)
@@ -77,24 +80,28 @@ if exist "%~dp0espeak-ng\command_line\espeak-ng.exe" (
     goto :check_ffmpeg
 )
 
+if exist "%ESPEAK_PORTABLE_DIR%\espeak-ng.exe" (
+    echo   espeak-ng portable encontrado localmente.
+    set "PATH=%ESPEAK_PORTABLE_DIR%;%PATH%"
+    goto :check_ffmpeg
+)
+
 echo.
-echo  ************************************************************
-echo  *  ATENCAO: espeak-ng NAO encontrado!                      *
-echo  *                                                           *
-echo  *  O espeak-ng e necessario para a sintese de voz.          *
-echo  *  A pagina oficial sera aberta no navegador agora.         *
-echo  *                                                           *
-echo  *  Baixe o arquivo .msi, instale, e marque a opcao          *
-echo  *  de adicionar ao PATH do sistema.                         *
-echo  *  Alternativa portable: extraia o espeak-ng em             *
-echo  *  .\espeak-ng\ ou .\espeak-ng\command_line\                *
-echo  ************************************************************
+echo   espeak-ng nao encontrado.
+echo   Baixando e extraindo copia portable local...
 echo.
-start "" "%ESPEAK_RELEASES_URL%"
-echo  Depois de instalar o espeak-ng, execute este instalador novamente.
-echo.
-pause
-exit /b 1
+call :download_espeak
+if errorlevel 1 (
+    echo.
+    echo  Nao foi possivel preparar o espeak-ng automaticamente.
+    echo  A pagina oficial sera aberta para instalacao manual.
+    echo.
+    start "" "%ESPEAK_RELEASES_URL%"
+    pause
+    exit /b 1
+)
+set "PATH=%ESPEAK_PORTABLE_DIR%;%PATH%"
+goto :check_ffmpeg
 
 :: ============================================================
 :: 3. Verificar ffmpeg
@@ -260,3 +267,35 @@ del ffmpeg\ffmpeg.zip 2>nul
 set "PATH=%~dp0ffmpeg;%PATH%"
 echo   ffmpeg instalado com sucesso.
 goto :eof
+
+:: ============================================================
+:: FUNCAO: Baixar e extrair espeak-ng portable
+:: ============================================================
+:download_espeak
+echo   Consultando release oficial do espeak-ng...
+mkdir "%ESPEAK_PORTABLE_ROOT%" 2>nul
+powershell -Command "$release = Invoke-RestMethod -Uri '%ESPEAK_API_URL%'; $asset = $release.assets | Where-Object { $_.name -eq 'espeak-ng.msi' } | Select-Object -First 1; if (-not $asset) { throw 'Asset espeak-ng.msi nao encontrado.' }; $asset.browser_download_url" > "%TEMP%\evo_espeak_url.txt"
+if errorlevel 1 goto :download_espeak_fail
+
+set /p ESPEAK_MSI_URL=<"%TEMP%\evo_espeak_url.txt"
+del "%TEMP%\evo_espeak_url.txt" 2>nul
+if not defined ESPEAK_MSI_URL goto :download_espeak_fail
+
+echo   Baixando espeak-ng portable...
+powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%ESPEAK_MSI_URL%' -OutFile '%ESPEAK_PORTABLE_ROOT%\espeak-ng.msi' }"
+if errorlevel 1 goto :download_espeak_fail
+
+echo   Extraindo espeak-ng para a pasta local...
+if exist "%ESPEAK_PORTABLE_DIR%" rd /s /q "%ESPEAK_PORTABLE_DIR%" 2>nul
+msiexec /a "%ESPEAK_PORTABLE_ROOT%\espeak-ng.msi" /qn TARGETDIR="%ESPEAK_PORTABLE_ROOT%"
+if errorlevel 1 goto :download_espeak_fail
+
+if not exist "%ESPEAK_PORTABLE_DIR%\espeak-ng.exe" goto :download_espeak_fail
+
+del "%ESPEAK_PORTABLE_ROOT%\espeak-ng.msi" 2>nul
+echo   espeak-ng portable preparado com sucesso.
+exit /b 0
+
+:download_espeak_fail
+echo   Falha ao preparar o espeak-ng portable.
+exit /b 1

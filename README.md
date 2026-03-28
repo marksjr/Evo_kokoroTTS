@@ -72,6 +72,7 @@ Recommended easiest launcher for non-technical users:
 The installer already handles:
 
 - Python setup or reuse of an existing Python installation
+- automatic local `espeak-ng` portable download when needed
 - `ffmpeg`
 - PyTorch CPU or CUDA build
 - Python dependencies from `requirements.txt`
@@ -81,6 +82,7 @@ Supported `espeak-ng` setups:
 - installed globally and available in `PATH`
 - portable copy in `.\espeak-ng\`
 - portable copy in `.\espeak-ng\command_line\`
+- auto-extracted portable copy in `.\espeak-ng\eSpeak NG\`
 
 ### Quick Start
 
@@ -96,7 +98,7 @@ For non-technical Windows users:
 1. Download the project as ZIP from GitHub and extract it.
 2. Open the extracted folder.
 3. Run `Instalar e Abrir Evo KokoroTTS.bat`.
-4. If `espeak-ng` is missing, the official download page will open automatically.
+4. If `espeak-ng` is missing, the installer will download and extract a portable local copy automatically.
 5. After the first setup, you can use only `run-kokoro.bat`.
 
 If someone starts `run-kokoro.bat` before the installation is complete, the launcher now tries to repair the environment automatically by calling `install.bat`.

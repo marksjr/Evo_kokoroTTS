@@ -14,6 +14,7 @@ if exist "%~dp0ffmpeg\ffmpeg.exe" set "PATH=%~dp0ffmpeg;%PATH%"
 if exist "%~dp0ffmpeg\bin\ffmpeg.exe" set "PATH=%~dp0ffmpeg\bin;%PATH%"
 if exist "%~dp0espeak-ng\espeak-ng.exe" set "PATH=%~dp0espeak-ng;%PATH%"
 if exist "%~dp0espeak-ng\command_line\espeak-ng.exe" set "PATH=%~dp0espeak-ng\command_line;%PATH%"
+if exist "%~dp0espeak-ng\eSpeak NG\espeak-ng.exe" set "PATH=%~dp0espeak-ng\eSpeak NG;%PATH%"
 if exist "C:\Program Files\eSpeak NG\espeak-ng.exe" set "PATH=C:\Program Files\eSpeak NG;%PATH%"
 
 set "PYTHON_CMD="
