@@ -65,6 +65,10 @@ The API marks each voice as available or unavailable and rejects requests for mi
 - **Windows 10/11** (64-bit)
 - **espeak-ng** required for Kokoro synthesis
 
+Recommended easiest launcher for non-technical users:
+
+- `Instalar e Abrir Evo KokoroTTS.bat`
+
 The installer already handles:
 
 - Python setup or reuse of an existing Python installation
@@ -91,10 +95,13 @@ For non-technical Windows users:
 
 1. Download the project as ZIP from GitHub and extract it.
 2. Open the extracted folder.
-3. Run `install.bat` once and wait until it finishes.
-4. After that, use only `run-kokoro.bat`.
+3. Run `Instalar e Abrir Evo KokoroTTS.bat`.
+4. If `espeak-ng` is missing, the official download page will open automatically.
+5. After the first setup, you can use only `run-kokoro.bat`.
 
 If someone starts `run-kokoro.bat` before the installation is complete, the launcher now tries to repair the environment automatically by calling `install.bat`.
+
+If a system Python is installed but incompatible, the installer now ignores it and switches to the bundled Python 3.11 runtime automatically.
 
 After startup, open:
 

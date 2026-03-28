@@ -14,6 +14,7 @@ echo  Depois dele, basta executar run-kokoro.bat.
 echo.
 
 cd /d "%~dp0"
+set "ESPEAK_RELEASES_URL=https://github.com/espeak-ng/espeak-ng/releases"
 
 :: ============================================================
 :: 1. Verificar se Python ja existe (sistema ou embedded)
@@ -30,8 +31,16 @@ where python >nul 2>&1
 if %errorlevel% equ 0 (
     for /f "tokens=*" %%i in ('python --version 2^>^&1') do set pyver=%%i
     echo   Encontrado: !pyver!
-    set "PYTHON=python"
-    set "USE_SYSTEM_PYTHON=1"
+    python -c "import sys; raise SystemExit(0 if sys.version_info[:2] >= (3, 11) and sys.version_info[:2] < (3, 13) else 1)" >nul 2>&1
+    if !errorlevel! equ 0 (
+        set "PYTHON=python"
+        set "USE_SYSTEM_PYTHON=1"
+        echo   Versao compativel detectada. Usando Python do sistema.
+    ) else (
+        echo   A versao encontrada nao e compativel.
+        echo   O instalador vai usar Python 3.11 embedded para evitar erros.
+        call :download_python
+    )
 ) else (
     echo   Python nao encontrado. Baixando Python Embedded...
     call :download_python
@@ -73,8 +82,7 @@ echo  ************************************************************
 echo  *  ATENCAO: espeak-ng NAO encontrado!                      *
 echo  *                                                           *
 echo  *  O espeak-ng e necessario para a sintese de voz.          *
-echo  *  Baixe e instale de:                                      *
-echo  *  https://github.com/espeak-ng/espeak-ng/releases          *
+echo  *  A pagina oficial sera aberta no navegador agora.         *
 echo  *                                                           *
 echo  *  Baixe o arquivo .msi, instale, e marque a opcao          *
 echo  *  de adicionar ao PATH do sistema.                         *
@@ -82,7 +90,8 @@ echo  *  Alternativa portable: extraia o espeak-ng em             *
 echo  *  .\espeak-ng\ ou .\espeak-ng\command_line\                *
 echo  ************************************************************
 echo.
-echo  Apos instalar o espeak-ng, execute este instalador novamente.
+start "" "%ESPEAK_RELEASES_URL%"
+echo  Depois de instalar o espeak-ng, execute este instalador novamente.
 echo.
 pause
 exit /b 1
@@ -204,6 +213,12 @@ exit /b 1
 :: FUNCAO: Baixar Python Embedded
 :: ============================================================
 :download_python
+if exist "python_embedded\python.exe" (
+    set "PYTHON=%~dp0python_embedded\python.exe"
+    echo   Python 3.11 Embedded ja esta pronto.
+    goto :eof
+)
+
 echo   Baixando Python 3.11 Embedded...
 mkdir python_embedded 2>nul
 powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip' -OutFile 'python_embedded\python.zip' }"
