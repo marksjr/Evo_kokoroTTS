@@ -2,7 +2,7 @@
 
 Local **multilingual Text-to-Speech API** built with **Kokoro-82M** plus complementary **Edge TTS** voices.
 
-It generates high-quality audio in MP3 or WAV, supports real-time streaming, exposes a FastAPI REST API, and includes a local web UI in English.
+Generate high-quality speech in MP3 or WAV, stream audio in real time, use a FastAPI REST API, or work directly from the built-in English web UI.
 
 ---
 
@@ -11,7 +11,6 @@ It generates high-quality audio in MP3 or WAV, supports real-time streaming, exp
 - **54 official Kokoro voices included locally**
 - **6 extra Edge TTS voices** for German and child-like Brazilian presets
 - **10 language options in the catalog**
-  - `pt-br`, `en-us`, `en-gb`, `es-es`, `fr-fr`, `ja-jp`, `zh-cn`, `hi-in`, `it-it`, `de-de`
 - **Automatic Kokoro / Edge routing** based on the selected voice
 - **English web UI**
 - **MP3 and WAV output**
@@ -20,11 +19,14 @@ It generates high-quality audio in MP3 or WAV, supports real-time streaming, exp
 - **CUDA or CPU auto-detection**
 - **Local bootstrap installer** via `install.bat`
 
+Supported language codes:
+`pt-br`, `en-us`, `en-gb`, `es-es`, `fr-fr`, `ja-jp`, `zh-cn`, `hi-in`, `it-it`, `de-de`
+
 ---
 
 ## Included Voice Coverage
 
-This repository now includes:
+This repository includes:
 
 - **All 54 official Kokoro-82M v1.0 voice files** in `models/kokoro_voices/voices/`
 - **6 Edge TTS voices** registered in the API catalog:
@@ -35,7 +37,7 @@ This repository now includes:
   - `pt_f_menina`
   - `pt_m_menino`
 
-The API marks each voice as available or unavailable, and rejects requests for missing local Kokoro voice files before synthesis starts.
+The API marks each voice as available or unavailable and rejects requests for missing local Kokoro voice files before synthesis starts.
 
 ---
 
@@ -131,7 +133,7 @@ Top-right status shows:
 }
 ```
 
-Voice validation now checks:
+Voice validation checks:
 
 - voice exists in the catalog
 - language is supported
@@ -172,7 +174,7 @@ curl -X POST http://localhost:8880/tts \
 # Chinese Kokoro
 curl -X POST http://localhost:8880/tts \
   -H "Content-Type: application/json" \
-  -d "{\"text\":\"你好，这是一个中文测试。\",\"voice\":\"zf_xiaoxiao\",\"format\":\"mp3\"}" \
+  -d "{\"text\":\"Ni hao. Zhe shi yi ge zhong wen ce shi.\",\"voice\":\"zf_xiaoxiao\",\"format\":\"mp3\"}" \
   --output zh.mp3
 
 # Edge voice with pitch
@@ -250,33 +252,33 @@ The last four packages are required so the Chinese Kokoro pipeline can load corr
 
 ```text
 EvoKokoroTTS/
-├── install.bat
-├── run-kokoro.bat
-├── start.py
-├── requirements.txt
-├── doc.html
-├── README.md
-├── models/
-│   └── kokoro_voices/
-│       └── voices/
-├── app/
-│   ├── main.py
-│   ├── api/
-│   │   └── routes.py
-│   ├── core/
-│   │   └── config.py
-│   ├── engines/
-│   │   ├── edge_engine.py
-│   │   └── kokoro_engine.py
-│   ├── models/
-│   │   └── schemas.py
-│   ├── services/
-│   │   └── tts_service.py
-│   ├── static/
-│   │   └── index.html
-│   └── utils/
-│       ├── audio.py
-│       └── text.py
+|-- install.bat
+|-- run-kokoro.bat
+|-- start.py
+|-- requirements.txt
+|-- doc.html
+|-- README.md
+|-- models/
+|   `-- kokoro_voices/
+|       `-- voices/
+`-- app/
+    |-- main.py
+    |-- api/
+    |   `-- routes.py
+    |-- core/
+    |   `-- config.py
+    |-- engines/
+    |   |-- edge_engine.py
+    |   `-- kokoro_engine.py
+    |-- models/
+    |   `-- schemas.py
+    |-- services/
+    |   `-- tts_service.py
+    |-- static/
+    |   `-- index.html
+    `-- utils/
+        |-- audio.py
+        `-- text.py
 ```
 
 ---
