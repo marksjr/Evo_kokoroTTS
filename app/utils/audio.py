@@ -8,7 +8,7 @@ from app.core.config import CROSSFADE_MS, MP3_BITRATE, MP3_BITRATE_STREAM, SAMPL
 
 
 def numpy_to_wav_bytes(audio: np.ndarray) -> bytes:
-    """Converte numpy array para bytes WAV."""
+    """Converts a numpy array to WAV bytes."""
     buf = io.BytesIO()
     audio_int16 = np.clip(audio * 32767, -32768, 32767).astype(np.int16)
     num_samples = len(audio_int16)
@@ -33,7 +33,7 @@ def numpy_to_wav_bytes(audio: np.ndarray) -> bytes:
 
 
 def normalize_audio(audio: np.ndarray, target_peak: float = 0.95) -> np.ndarray:
-    """Normaliza audio para volume consistente."""
+    """Normalizes audio for consistent volume."""
     peak = np.max(np.abs(audio))
     if peak > 0:
         audio = audio * (target_peak / peak)
@@ -41,7 +41,7 @@ def normalize_audio(audio: np.ndarray, target_peak: float = 0.95) -> np.ndarray:
 
 
 def crossfade_chunks(chunks: list[np.ndarray], crossfade_samples: int = None) -> np.ndarray:
-    """Concatena chunks de audio com crossfade suave."""
+    """Concatenates audio chunks with smooth crossfade."""
     if not chunks:
         return np.array([], dtype=np.float32)
     if len(chunks) == 1:
@@ -77,7 +77,7 @@ def crossfade_chunks(chunks: list[np.ndarray], crossfade_samples: int = None) ->
 
 
 def trim_silence(audio: np.ndarray, threshold: float = 0.01, pad_samples: int = 1200) -> np.ndarray:
-    """Remove silencio excessivo do inicio e fim do audio."""
+    """Removes excessive silence from the beginning and end of the audio."""
     mask = np.abs(audio) > threshold
     if not mask.any():
         return audio
@@ -89,7 +89,7 @@ def trim_silence(audio: np.ndarray, threshold: float = 0.01, pad_samples: int = 
 
 
 def numpy_to_mp3_bytes(audio: np.ndarray, bitrate: str = None) -> bytes:
-    """Converte numpy array para bytes MP3."""
+    """Converts a numpy array to MP3 bytes."""
     if bitrate is None:
         bitrate = MP3_BITRATE
 
@@ -106,12 +106,12 @@ def numpy_to_mp3_bytes(audio: np.ndarray, bitrate: str = None) -> bytes:
 
 
 def numpy_to_mp3_chunk(audio: np.ndarray) -> bytes:
-    """Converte chunk de audio numpy para MP3."""
+    """Converts a numpy audio chunk to MP3."""
     return numpy_to_mp3_bytes(audio, bitrate=MP3_BITRATE_STREAM)
 
 
 def mp3_bytes_to_wav_bytes(audio_bytes: bytes) -> bytes:
-    """Converte bytes MP3 para bytes WAV."""
+    """Converts MP3 bytes to WAV bytes."""
     segment = AudioSegment.from_file(io.BytesIO(audio_bytes), format="mp3")
     buf = io.BytesIO()
     segment.export(buf, format="wav")

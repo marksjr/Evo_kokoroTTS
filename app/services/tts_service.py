@@ -12,12 +12,12 @@ from app.utils.audio import numpy_to_mp3_bytes, numpy_to_mp3_chunk, numpy_to_wav
 logger = logging.getLogger(__name__)
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
-# Executor global para tarefas intensivas de CPU (Kokoro)
+# Global executor for CPU-intensive tasks (Kokoro)
 _executor = ThreadPoolExecutor(max_workers=4)
 
 
 class TTSService:
-    """Serviço central que roteia requisições entre as engines Kokoro e Edge TTS."""
+    """Central service that routes requests between the Kokoro and Edge TTS engines."""
 
     _instance = None
 
@@ -37,11 +37,11 @@ class TTSService:
     def _get_voice_config(self, voice: str) -> dict:
         voice_config = VOICES.get(voice)
         if not voice_config:
-            raise ValueError(f"Voz '{voice}' não encontrada no catálogo.")
+            raise ValueError(f"Voice '{voice}' not found in the catalog.")
         return voice_config
 
     def load_model(self):
-        """Carrega o modelo Kokoro na memória/GPU."""
+        """Loads the Kokoro model into memory/GPU."""
         self._kokoro_engine.load()
 
     @property
@@ -79,7 +79,7 @@ class TTSService:
 
         source = voice_config.get("source")
         if not source:
-            return False, "Voz Kokoro sem arquivo de origem configurado."
+            return False, "Kokoro voice has no source file configured."
 
         source_path = Path(source)
         if source_path.suffix.lower() != ".pt":
@@ -89,16 +89,16 @@ class TTSService:
         if resolved_path.is_file():
             return True, None
 
-        return False, f"Arquivo de voz ausente: {source}"
+        return False, f"Voice file missing: {source}"
 
     def _resolve_params(self, voice_config: dict, speed: float, pitch: int) -> tuple[float, int]:
-        """Resolve speed e pitch usando defaults da voz se os fornecidos forem neutros (1.0 e 0)."""
+        """Resolves speed and pitch using voice defaults if the provided values are neutral (1.0 and 0)."""
         final_speed = speed if abs(speed - 1.0) > 1e-9 else float(voice_config.get("default_speed", 1.0))
         final_pitch = pitch if pitch != 0 else int(voice_config.get("default_pitch", 0))
         return final_speed, final_pitch
 
     async def generate(self, text: str, voice: str, speed: float, pitch: int, fmt: str) -> bytes:
-        """Gera áudio completo (WAV ou MP3) de forma assíncrona."""
+        """Generates complete audio (WAV or MP3) asynchronously."""
         voice_config = self._get_voice_config(voice)
         engine_name = voice_config.get("engine", "kokoro")
         speed, pitch = self._resolve_params(voice_config, speed, pitch)
@@ -106,7 +106,7 @@ class TTSService:
         if engine_name == "edge":
             return await self._edge_engine.synthesize(text, voice_config["source"], speed, pitch, fmt)
 
-        # Kokoro synthesis (CPU/GPU bound) executada em thread separada
+        # Kokoro synthesis (CPU/GPU bound) executed in a separate thread
         loop = asyncio.get_running_loop()
         audio = await loop.run_in_executor(_executor, self._kokoro_engine.synthesize, text, voice, speed)
 
@@ -115,7 +115,7 @@ class TTSService:
         return numpy_to_mp3_bytes(audio)
 
     async def generate_stream(self, text: str, voice: str, speed: float, pitch: int) -> AsyncGenerator[bytes, None]:
-        """Gera stream de áudio em chunks MP3."""
+        """Generates an audio stream in MP3 chunks."""
         voice_config = self._get_voice_config(voice)
         engine_name = voice_config.get("engine", "kokoro")
         speed, pitch = self._resolve_params(voice_config, speed, pitch)
@@ -125,7 +125,7 @@ class TTSService:
                 yield chunk
             return
 
-        # Para Kokoro, consumimos o gerador síncrono chunk a chunk via executor
+        # For Kokoro, we consume the synchronous generator chunk by chunk via executor
         loop = asyncio.get_running_loop()
         generator = self._kokoro_engine.synthesize_chunk_generator(text, voice, speed)
 
@@ -136,9 +136,9 @@ class TTSService:
             except StopIteration:
                 break
             except Exception as e:
-                logger.error(f"Erro no streaming Kokoro: {e}")
+                logger.error(f"Error in Kokoro streaming: {e}")
                 break
 
 
-# Instância única global
+# Global singleton instance
 tts_service = TTSService()

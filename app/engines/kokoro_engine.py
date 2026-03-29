@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class KokoroEngine:
-    """Engine Kokoro-82M com pipelines gerenciados por idioma."""
+    """Kokoro-82M engine with language-managed pipelines."""
 
     def __init__(self):
         self._pipelines = {}
@@ -20,27 +20,27 @@ class KokoroEngine:
     def _get_voice_config(self, voice: str) -> dict:
         voice_config = VOICES.get(voice)
         if not voice_config:
-            raise ValueError(f"Voz '{voice}' não encontrada.")
+            raise ValueError(f"Voice '{voice}' not found.")
         return voice_config
 
     def _load_pipeline(self, lang_code: str) -> KPipeline:
         if lang_code in self._pipelines:
             return self._pipelines[lang_code]
 
-        logger.info(f"[Kokoro] Carregando pipeline para idioma '{lang_code}' no dispositivo {DEVICE}...")
+        logger.info(f"[Kokoro] Loading pipeline for language '{lang_code}' on device {DEVICE}...")
         try:
             pipeline = KPipeline(lang_code=lang_code, device=DEVICE)
             self._pipelines[lang_code] = pipeline
             self._loaded = True
             return pipeline
         except Exception as e:
-            logger.error(f"[Kokoro] Erro ao carregar pipeline {lang_code}: {e}")
+            logger.error(f"[Kokoro] Error loading pipeline {lang_code}: {e}")
             raise
 
     def load(self) -> None:
-        """Carrega o pipeline padrão definido nas configurações."""
+        """Loads the default pipeline defined in the configuration."""
         self._load_pipeline(DEFAULT_LANG_CODE)
-        logger.info(f"[Kokoro] Engine inicializada com sucesso ({DEVICE})")
+        logger.info(f"[Kokoro] Engine initialized successfully ({DEVICE})")
 
     @property
     def is_loaded(self) -> bool:
@@ -59,13 +59,13 @@ class KokoroEngine:
 
     @torch.inference_mode()
     def _synth_chunk(self, text_chunk: str, voice: str, speed: float) -> list[np.ndarray]:
-        """Sintetiza um único chunk de texto."""
+        """Synthesizes a single text chunk."""
         voice_config = self._get_voice_config(voice)
         pipeline = self._load_pipeline(voice_config["lang_code"])
         voice_source = voice_config.get("source", voice)
 
         parts = []
-        # O pipeline Kokoro já faz uma divisão interna por nova linha se solicitado
+        # The Kokoro pipeline already performs an internal split by newline if requested
         for _, _, audio in pipeline(text_chunk, voice=voice_source, speed=speed, split_pattern=r"\n+"):
             if audio is not None:
                 parts.append(audio)
@@ -77,9 +77,9 @@ class KokoroEngine:
         return chunk_text(text)
 
     def synthesize(self, text: str, voice: str, speed: float) -> np.ndarray:
-        """Sintetiza o texto completo concatenando chunks com crossfade."""
+        """Synthesizes the full text by concatenating chunks with crossfade."""
         chunks = self._prepare_text(text, voice)
-        logger.debug(f"[Kokoro] Sintetizando {len(chunks)} chunks para a voz {voice}")
+        logger.debug(f"[Kokoro] Synthesizing {len(chunks)} chunks for voice {voice}")
 
         audio_segments = []
         for chunk in chunks:
@@ -88,14 +88,14 @@ class KokoroEngine:
                 audio_segments.append(np.concatenate(parts))
 
         if not audio_segments:
-            raise RuntimeError(f"A engine Kokoro não gerou áudio para o texto fornecido.")
+            raise RuntimeError(f"The Kokoro engine did not generate audio for the provided text.")
 
         audio = crossfade_chunks(audio_segments)
         audio = trim_silence(audio)
         return normalize_audio(audio)
 
     def synthesize_chunk_generator(self, text: str, voice: str, speed: float):
-        """Gerador para streaming de áudio chunk por chunk."""
+        """Generator for streaming audio chunk by chunk."""
         chunks = self._prepare_text(text, voice)
 
         for chunk in chunks:

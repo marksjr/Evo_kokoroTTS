@@ -25,24 +25,24 @@ ROOT_DIR = Path(__file__).parent.parent
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Iniciando Evo KokoroTTS (device: {DEVICE})")
+    logger.info(f"Starting Evo KokoroTTS (device: {DEVICE})")
     tts_service.load_model()
-    logger.info("Evo KokoroTTS pronta para receber requisicoes")
-    # Abrir navegador automaticamente após modelo carregar
+    logger.info("Evo KokoroTTS ready to receive requests")
+    # Automatically open browser after model loads
     threading.Thread(
         target=lambda: webbrowser.open(f"http://localhost:{PORT}"),
         daemon=True,
     ).start()
     yield
-    logger.info("Encerrando Evo KokoroTTS")
+    logger.info("Shutting down Evo KokoroTTS")
 
 
 app = FastAPI(
     title="Evo KokoroTTS",
     description=(
-        "API local de Text-to-Speech multilíngue com Kokoro-82M e Edge TTS. "
-        "Suporta catálogo de idiomas, vozes por engine, geração completa em MP3/WAV, "
-        "streaming em MP3 e ajuste de pitch para vozes Edge, incluindo presets infantis."
+        "Local multilingual Text-to-Speech API with Kokoro-82M and Edge TTS. "
+        "Supports language catalog, voices per engine, full generation in MP3/WAV, "
+        "MP3 streaming, and pitch adjustment for Edge voices, including child presets."
     ),
     version="1.0.0",
     lifespan=lifespan,
@@ -60,7 +60,7 @@ app.include_router(router)
 
 @app.get("/", include_in_schema=False)
 async def root():
-    """Redireciona para a interface web."""
+    """Redirects to the web interface."""
     return FileResponse(STATIC_DIR / "index.html")
 
 

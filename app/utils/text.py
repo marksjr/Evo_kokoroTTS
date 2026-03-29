@@ -5,14 +5,14 @@ from app.core.config import CHUNK_ABSOLUTE_MAX_CHARS, CHUNK_TARGET_MAX_CHARS, CH
 
 
 def normalize_unicode(text: str) -> str:
-    """Normaliza texto para NFC (forma composta).
-    Garante que 'ã' seja um único caractere e não 'a' + '~' separados.
-    Essencial para consistência na síntese de pt-BR."""
+    """Normalizes text to NFC (composed form).
+    Ensures that 'ã' is a single character and not separate 'a' + '~'.
+    Essential for consistency in pt-BR synthesis."""
     return unicodedata.normalize("NFC", text)
 
 
 def normalize_special_chars(text: str) -> str:
-    """Normaliza caracteres tipográficos para equivalentes simples."""
+    """Normalizes typographic characters to their simple equivalents."""
     text = re.sub(r'[\u201C\u201D\u201E\u201F\u00AB\u00BB]', '"', text)
     text = re.sub(r'[\u2018\u2019\u201A\u201B]', "'", text)
     text = re.sub(r"\s*[\u2013\u2014]\s*", ", ", text)
@@ -22,8 +22,8 @@ def normalize_special_chars(text: str) -> str:
 
 
 def preprocess_text_ptbr(text: str) -> str:
-    """Pré-processamento de texto para pt-BR.
-    Normaliza Unicode, expande abreviações e limpa formatação."""
+    """Text preprocessing for pt-BR.
+    Normalizes Unicode, expands abbreviations, and cleans up formatting."""
     text = text.strip()
     text = normalize_unicode(text)
     text = normalize_special_chars(text)
@@ -111,7 +111,7 @@ def preprocess_text_ptbr(text: str) -> str:
 
 
 def preprocess_text(text: str, language: str) -> str:
-    """Pré-processamento genérico com regra especializada para pt-BR."""
+    """Generic preprocessing with specialized rules for pt-BR."""
     if language == "pt-br":
         return preprocess_text_ptbr(text)
 
@@ -124,8 +124,8 @@ def preprocess_text(text: str, language: str) -> str:
 
 
 def split_into_sentences(text: str) -> list[str]:
-    """Divide texto em sentenças respeitando regras pt-BR.
-    Lida com reticências (...), pontuação combinada (?!), e quebras de linha."""
+    """Splits text into sentences following pt-BR rules.
+    Handles ellipses (...), combined punctuation (?!), and line breaks."""
     text = re.sub(r"\.{3}", "\u2026", text)
     parts = re.split(r"(?<=[.!?;:\u2026。！？])\s*", text)
     sentences = []
@@ -137,8 +137,8 @@ def split_into_sentences(text: str) -> list[str]:
 
 
 def chunk_text(text: str) -> list[str]:
-    """Agrupa sentenças em chunks respeitando limites do modelo.
-    Chunks menores melhoram qualidade; muito pequenos perdem contexto prosódico."""
+    """Groups sentences into chunks respecting model limits.
+    Smaller chunks improve quality; too small ones lose prosodic context."""
     sentences = split_into_sentences(text)
     chunks = []
     current_chunk = ""

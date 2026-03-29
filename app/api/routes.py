@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get(
     "/health",
     response_model=HealthResponse,
-    summary="Verificar status da API",
+    summary="Check API status",
 )
 async def health():
     return HealthResponse(
@@ -26,7 +26,7 @@ async def health():
 @router.get(
     "/languages",
     response_model=list[LanguageInfo],
-    summary="Listar idiomas disponiveis",
+    summary="List available languages",
 )
 async def list_languages():
     return [LanguageInfo(**lang) for lang in tts_service.get_languages()]
@@ -35,7 +35,7 @@ async def list_languages():
 @router.get(
     "/voices",
     response_model=list[VoiceInfo],
-    summary="Listar vozes disponiveis",
+    summary="List available voices",
 )
 async def list_voices():
     return [VoiceInfo(**voice) for voice in tts_service.get_voices()]
@@ -45,30 +45,30 @@ def _validate_request(voice: str) -> None:
     if not tts_service.validate_voice(voice):
         raise HTTPException(
             status_code=404,
-            detail=f"Voz '{voice}' nao encontrada. Consulte /voices para a lista completa.",
+            detail=f"Voice '{voice}' not found. See /voices for the full list.",
         )
     if not tts_service.language_supported_for_voice(voice):
         raise HTTPException(
             status_code=400,
-            detail=f"O idioma da voz '{voice}' nao e suportado pela instalacao atual do Kokoro.",
+            detail=f"The language of voice '{voice}' is not supported by the current Kokoro installation.",
         )
 
     available, availability_error = tts_service.get_voice_availability(voice)
     if not available:
         raise HTTPException(
             status_code=400,
-            detail=availability_error or f"A voz '{voice}' nao esta pronta para uso.",
+            detail=availability_error or f"Voice '{voice}' is not ready for use.",
         )
 
 
 @router.post(
     "/tts",
-    summary="Gerar audio completo",
+    summary="Generate complete audio",
     responses={
-        200: {"description": "Audio gerado com sucesso."},
-        400: {"description": "Erro na requisicao ou voz indisponivel."},
-        404: {"description": "Voz nao encontrada."},
-        500: {"description": "Erro interno no processamento."},
+        200: {"description": "Audio generated successfully."},
+        400: {"description": "Request error or voice unavailable."},
+        404: {"description": "Voice not found."},
+        500: {"description": "Internal processing error."},
     },
 )
 async def text_to_speech(req: TTSRequest):
@@ -85,8 +85,8 @@ async def text_to_speech(req: TTSRequest):
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     except Exception:
-        logger.exception("Erro inesperado na geracao de audio (voz: %s)", req.voice)
-        raise HTTPException(status_code=500, detail="Erro interno ao sintetizar o audio.")
+        logger.exception("Unexpected error during audio generation (voice: %s)", req.voice)
+        raise HTTPException(status_code=500, detail="Internal error while synthesizing audio.")
 
     media_type = "audio/mpeg" if req.format == "mp3" else "audio/wav"
     return Response(
@@ -98,11 +98,11 @@ async def text_to_speech(req: TTSRequest):
 
 @router.post(
     "/tts/stream",
-    summary="Gerar audio por streaming",
+    summary="Generate audio via streaming",
     responses={
-        200: {"description": "Stream de audio iniciado."},
-        400: {"description": "Erro na requisicao."},
-        404: {"description": "Voz nao encontrada."},
+        200: {"description": "Audio stream started."},
+        400: {"description": "Request error."},
+        404: {"description": "Voice not found."},
     },
 )
 async def text_to_speech_stream(req: TTSStreamRequest):
@@ -118,7 +118,7 @@ async def text_to_speech_stream(req: TTSStreamRequest):
             ):
                 yield chunk
         except Exception as exc:
-            logger.error("Erro durante o streaming de audio: %s", exc)
+            logger.error("Error during audio streaming: %s", exc)
 
     return StreamingResponse(
         audio_generator(),

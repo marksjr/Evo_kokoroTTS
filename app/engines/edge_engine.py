@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class EdgeTTSEngine:
-    """Motor isolado para vozes Edge TTS."""
+    """Isolated engine for Edge TTS voices."""
 
     @staticmethod
     def _speed_to_rate(speed: float) -> str:
