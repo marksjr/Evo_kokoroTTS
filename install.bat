@@ -18,7 +18,7 @@ set "ESPEAK_PORTABLE_ROOT=%~dp0espeak-ng"
 set "ESPEAK_PORTABLE_DIR=%~dp0espeak-ng\eSpeak NG"
 
 :: 1. Python
-echo  [1/6] Setting up Python...
+echo  [1/7] Setting up Python...
 
 :: Check embedded Python already extracted
 if exist "python_embedded\python.exe" (
@@ -66,7 +66,7 @@ if errorlevel 1 goto :fail_end
 :: 2. espeak-ng
 :check_espeak
 echo.
-echo  [2/6] Setting up speech engine (espeak-ng)...
+echo  [2/7] Setting up speech engine (espeak-ng)...
 
 where espeak-ng >nul 2>&1
 if %errorlevel% equ 0 (
@@ -154,7 +154,7 @@ set "PATH=%ESPEAK_PORTABLE_DIR%;%PATH%"
 :: 3. ffmpeg
 :check_ffmpeg
 echo.
-echo  [3/6] Setting up audio converter (ffmpeg)...
+echo  [3/7] Setting up audio converter (ffmpeg)...
 
 where ffmpeg >nul 2>&1
 if %errorlevel% equ 0 (
@@ -195,10 +195,60 @@ start "" "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-
 pause
 exit /b 1
 
-:: 4. Python environment
+:: 4. Visual C++ Redistributable (required by PyTorch)
+:check_vcredist
+echo.
+echo  [4/7] Checking Visual C++ Redistributable...
+
+reg query "HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" /v Major >nul 2>&1
+if %errorlevel% equ 0 (
+    echo         OK - Visual C++ Redistributable is installed.
+    goto :setup_venv
+)
+
+echo         Visual C++ Redistributable not found.
+echo         This is required by PyTorch. Installing now...
+echo.
+
+where curl.exe >nul 2>&1
+if %errorlevel% equ 0 (
+    curl.exe -L -o "%TEMP%\vc_redist.x64.exe" "https://aka.ms/vs/17/release/vc_redist.x64.exe"
+) else (
+    powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://aka.ms/vs/17/release/vc_redist.x64.exe' -OutFile '%TEMP%\vc_redist.x64.exe' }"
+)
+if errorlevel 1 (
+    echo.
+    echo  Could not download Visual C++ Redistributable.
+    echo  Download and install manually from:
+    echo  https://aka.ms/vs/17/release/vc_redist.x64.exe
+    echo.
+    pause
+    exit /b 1
+)
+
+echo         Installing Visual C++ Redistributable...
+"%TEMP%\vc_redist.x64.exe" /install /quiet /norestart
+if errorlevel 1 (
+    echo         Silent install failed. Opening installer...
+    "%TEMP%\vc_redist.x64.exe"
+)
+del "%TEMP%\vc_redist.x64.exe" 2>nul
+
+reg query "HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" /v Major >nul 2>&1
+if %errorlevel% equ 0 (
+    echo         OK - Visual C++ Redistributable installed.
+) else (
+    echo.
+    echo  WARNING: Visual C++ Redistributable may not have installed correctly.
+    echo  PyTorch may fail to load. If so, install manually from:
+    echo  https://aka.ms/vs/17/release/vc_redist.x64.exe
+    echo.
+)
+
+:: 5. Python environment
 :setup_venv
 echo.
-echo  [4/6] Configuring environment...
+echo  [5/7] Configuring environment...
 
 if defined USE_SYSTEM_PYTHON (
     if not exist "venv" (
@@ -222,9 +272,9 @@ if not exist "%PYTHON%" (
 
 echo         OK - Environment ready.
 
-:: 5. Dependencies (PyTorch + packages)
+:: 6. Dependencies (PyTorch + packages)
 echo.
-echo  [5/6] Installing AI components...
+echo  [6/7] Installing AI components...
 echo         This may take several minutes on the first run.
 echo.
 
@@ -259,9 +309,9 @@ echo         Installing remaining components...
 "%PYTHON%" -m pip install -r requirements.txt
 if errorlevel 1 goto :fail_requirements
 
-:: 6. Verification
+:: 7. Verification
 echo.
-echo  [6/6] Verifying installation...
+echo  [7/7] Verifying installation...
 echo.
 
 "%PYTHON%" -c "import torch; cuda='YES (GPU)' if torch.cuda.is_available() else 'NO (using CPU)'; print('         PyTorch: OK'); print('         GPU Acceleration: ' + cuda)"
