@@ -66,7 +66,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-start "" cmd /c "timeout /t 4 /nobreak >nul & start http://localhost:8880"
+start "" powershell -WindowStyle Hidden -Command "Start-Sleep 4; Start-Process 'http://localhost:8880'"
 "%PYTHON_CMD%" start.py
 pause
 goto :eof

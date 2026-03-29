@@ -289,7 +289,7 @@ echo   A interface web abrira automaticamente
 echo   no navegador em http://localhost:8880
 echo  ====================================================
 echo.
-pause
+if not defined EVO_SKIP_PAUSE pause
 exit /b 0
 
 :fail_pip_upgrade

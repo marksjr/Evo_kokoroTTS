@@ -10,6 +10,7 @@ echo  1. O instalador vai preparar o ambiente.
 echo  2. Depois o servidor sera iniciado automaticamente.
 echo.
 
+set "EVO_SKIP_PAUSE=1"
 call "%~dp0install.bat"
 if errorlevel 1 exit /b 1
 
