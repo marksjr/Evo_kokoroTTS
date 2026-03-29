@@ -6,14 +6,15 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Ferramentas extraidas em runtime
+# Runtime-extracted tools
 ffmpeg/
 espeak-ng/
 
-# ffmpeg bundled (muito grande para git, distribuir manualmente)
-ffmpeg_bundled/
+# ffmpeg bundled (too large for git, distribute manually)
+ffmpeg_bundled/*
+!ffmpeg_bundled/.gitkeep
 
-# Arquivos de audio gerados
+# Generated audio files
 *.mp3
 *.wav
 
@@ -25,9 +26,9 @@ ffmpeg_bundled/
 Thumbs.db
 .DS_Store
 
-# Agent/Claude config
+# Config
 .agent/
 .claude/
 
-# Imagens temporárias
+# Temporary images
 image.png
