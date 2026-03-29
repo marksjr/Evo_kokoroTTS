@@ -159,25 +159,25 @@ echo  [3/7] Setting up audio converter (ffmpeg)...
 where ffmpeg >nul 2>&1
 if %errorlevel% equ 0 (
     echo         OK - ffmpeg is installed.
-    goto :setup_venv
+    goto :check_vcredist
 )
 
 if exist "%~dp0ffmpeg\ffmpeg.exe" (
     echo         OK - ffmpeg found.
     set "PATH=%~dp0ffmpeg;%PATH%"
-    goto :setup_venv
+    goto :check_vcredist
 )
 
 if exist "%~dp0ffmpeg\bin\ffmpeg.exe" (
     echo         OK - ffmpeg found.
     set "PATH=%~dp0ffmpeg\bin;%PATH%"
-    goto :setup_venv
+    goto :check_vcredist
 )
 
 echo         ffmpeg not found. Downloading (~90 MB)...
 call :download_ffmpeg
 if errorlevel 1 goto :ffmpeg_browser_fallback
-goto :setup_venv
+goto :check_vcredist
 
 :ffmpeg_browser_fallback
 echo.
