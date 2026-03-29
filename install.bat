@@ -183,25 +183,26 @@ if exist "%~dp0ffmpeg_bundled\ffmpeg.exe" (
     goto :setup_venv
 )
 
-echo         Downloading ffmpeg (this may take a few minutes)...
-echo         Please wait, the file is large (~200 MB)...
+echo         ffmpeg not found. Downloading (~90 MB)...
 call :download_ffmpeg
-if errorlevel 1 (
-    echo.
-    echo  COULD NOT DOWNLOAD FFMPEG
-    echo.
-    echo  The download may have failed due to slow connection.
-    echo  You can download it manually:
-    echo.
-    echo  1. Go to: github.com/BtbN/FFmpeg-Builds/releases
-    echo  2. Download: ffmpeg-master-latest-win64-gpl-shared.zip
-    echo  3. Extract ffmpeg.exe and ffprobe.exe
-    echo  4. Place them in the ffmpeg_bundled folder
-    echo  5. Run this installer again
-    echo.
-    pause
-    exit /b 1
-)
+if errorlevel 1 goto :ffmpeg_browser_fallback
+goto :setup_venv
+
+:ffmpeg_browser_fallback
+echo.
+echo  Automatic download failed. Opening browser for manual download...
+echo.
+echo  INSTRUCTIONS:
+echo  1. Your browser will open with the download link.
+echo  2. Save the ZIP file anywhere on your computer.
+echo  3. Extract ffmpeg.exe and ffprobe.exe from the ZIP.
+echo  4. Place them in the ffmpeg_bundled folder:
+echo     %~dp0ffmpeg_bundled\
+echo  5. Run this installer again.
+echo.
+start "" "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
+pause
+exit /b 1
 
 :: 4. Python environment
 :setup_venv
@@ -389,28 +390,39 @@ exit /b 0
 
 :: FUNCTION: Download ffmpeg
 :download_ffmpeg
+set "FFMPEG_URL=https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip"
 mkdir ffmpeg 2>nul
-powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri 'https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip' -OutFile 'ffmpeg\ffmpeg.zip' }"
-if errorlevel 1 (
-    echo         Download failed.
-    exit /b 1
+
+:: Try curl.exe first (built into Windows 10/11, much faster)
+where curl.exe >nul 2>&1
+if %errorlevel% equ 0 (
+    echo         Downloading with curl...
+    curl.exe -L -o "ffmpeg\ffmpeg.zip" "%FFMPEG_URL%"
+    if errorlevel 1 goto :ffmpeg_download_fail
+    goto :ffmpeg_extract
 )
+
+:: Fallback to PowerShell
+echo         Downloading with PowerShell (may be slower)...
+powershell -Command "& { [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%FFMPEG_URL%' -OutFile 'ffmpeg\ffmpeg.zip' }"
+if errorlevel 1 goto :ffmpeg_download_fail
+
+:ffmpeg_extract
 echo         Extracting...
 powershell -Command "Expand-Archive -Path 'ffmpeg\ffmpeg.zip' -DestinationPath 'ffmpeg\temp' -Force"
-if errorlevel 1 (
-    echo         Extraction failed.
-    exit /b 1
-)
+if errorlevel 1 goto :ffmpeg_download_fail
 powershell -Command "Get-ChildItem 'ffmpeg\temp' -Recurse -Filter '*.exe' | Move-Item -Destination 'ffmpeg\' -Force"
-if errorlevel 1 (
-    echo         Setup failed.
-    exit /b 1
-)
+if errorlevel 1 goto :ffmpeg_download_fail
 rd /s /q ffmpeg\temp 2>nul
 del ffmpeg\ffmpeg.zip 2>nul
 set "PATH=%~dp0ffmpeg;%PATH%"
 echo         OK - ffmpeg installed.
 exit /b 0
+
+:ffmpeg_download_fail
+rd /s /q ffmpeg\temp 2>nul
+del ffmpeg\ffmpeg.zip 2>nul
+exit /b 1
 
 :: FUNCTION: Download espeak-ng portable
 :download_espeak
