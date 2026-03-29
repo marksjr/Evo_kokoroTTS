@@ -5,9 +5,12 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Ferramentas baixadas pelo instalador
+# Ferramentas extraidas em runtime
 ffmpeg/
 espeak-ng/
+
+# ffmpeg bundled (muito grande para git, distribuir manualmente)
+ffmpeg_bundled/
 
 # Arquivos de audio gerados
 *.mp3

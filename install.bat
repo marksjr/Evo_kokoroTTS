@@ -88,6 +88,38 @@ if exist "%ESPEAK_PORTABLE_DIR%\espeak-ng.exe" (
 
 echo.
 echo   espeak-ng nao encontrado.
+echo.
+if not exist "%~dp0espeak-ng-installer.msi" goto :espeak_download
+
+echo   Instalador espeak-ng encontrado na pasta do projeto.
+echo   Abrindo o instalador... Clique em "Next" para instalar.
+echo.
+msiexec /i "%~dp0espeak-ng-installer.msi"
+echo.
+
+:: Verificar se a instalacao via wizard foi bem sucedida
+if exist "C:\Program Files\eSpeak NG\espeak-ng.exe" (
+    echo   espeak-ng instalado com sucesso!
+    set "PATH=C:\Program Files\eSpeak NG;%PATH%"
+    goto :check_ffmpeg
+)
+
+:: Tentar extrair portable como fallback
+echo   Tentando extrair portable como alternativa...
+mkdir "%ESPEAK_PORTABLE_ROOT%" 2>nul
+if exist "%ESPEAK_PORTABLE_DIR%" rd /s /q "%ESPEAK_PORTABLE_DIR%" 2>nul
+msiexec /a "%~dp0espeak-ng-installer.msi" /qn TARGETDIR="%ESPEAK_PORTABLE_ROOT%"
+if exist "%ESPEAK_PORTABLE_DIR%\espeak-ng.exe" (
+    echo   espeak-ng portable extraido com sucesso!
+    set "PATH=%ESPEAK_PORTABLE_DIR%;%PATH%"
+    goto :check_ffmpeg
+)
+
+echo   Falha ao instalar espeak-ng.
+pause
+exit /b 1
+
+:espeak_download
 echo   Baixando e extraindo copia portable local...
 echo.
 call :download_espeak
@@ -101,7 +133,6 @@ if errorlevel 1 (
     exit /b 1
 )
 set "PATH=%ESPEAK_PORTABLE_DIR%;%PATH%"
-goto :check_ffmpeg
 
 :: ============================================================
 :: 3. Verificar ffmpeg
@@ -128,8 +159,17 @@ if exist "%~dp0ffmpeg\bin\ffmpeg.exe" (
     goto :setup_venv
 )
 
-echo   ffmpeg nao encontrado. Baixando...
-call :download_ffmpeg
+echo   ffmpeg nao encontrado.
+if exist "%~dp0ffmpeg_bundled\ffmpeg.exe" (
+    echo   Copiando ffmpeg da pasta bundled...
+    mkdir ffmpeg 2>nul
+    copy /y "%~dp0ffmpeg_bundled\*.exe" ffmpeg\ >nul
+    set "PATH=%~dp0ffmpeg;%PATH%"
+    echo   ffmpeg configurado com sucesso.
+) else (
+    echo   Baixando ffmpeg (isso pode levar alguns minutos)...
+    call :download_ffmpeg
+)
 
 :: ============================================================
 :: 4. Criar venv e instalar dependencias
