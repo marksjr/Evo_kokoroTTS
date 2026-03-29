@@ -104,9 +104,18 @@ For non-technical Windows users:
 
 ### Offline / VM Installation
 
-For environments with slow or no internet (virtual machines, air-gapped systems):
+For environments with slow or no internet (virtual machines, air-gapped systems), download these files in advance:
 
-1. On a machine with internet, download ffmpeg from [BtbN Builds](https://github.com/BtbN/FFmpeg-Builds/releases) and extract `ffmpeg.exe` + `ffprobe.exe` into a `ffmpeg_bundled/` folder inside the project.
+| Component | Download Link |
+|-----------|--------------|
+| **Python 3.11 Embedded (64-bit)** | [python-3.11.9-embed-amd64.zip](https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip) |
+| **Python 3.11 Embedded (32-bit)** | [python-3.11.9-embed-win32.zip](https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-win32.zip) |
+| **FFmpeg for Windows** | [ffmpeg-master-latest-win64-gpl-shared.zip](https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl-shared.zip) |
+| **espeak-ng** | Already included in the repo (`espeak-ng-installer.msi`) |
+
+Steps:
+
+1. Extract `ffmpeg.exe` + `ffprobe.exe` from the FFmpeg zip into a `ffmpeg_bundled/` folder inside the project.
 2. The `espeak-ng-installer.msi` is already included in the repo.
 3. Copy the entire project folder to the target machine and run the installer normally.
 
