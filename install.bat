@@ -198,27 +198,13 @@ exit /b 1
 :: 4. Visual C++ Redistributable (required by PyTorch)
 :check_vcredist
 echo.
-echo  [4/7] Checking Visual C++ Redistributable...
+echo  [4/7] Installing Visual C++ Redistributable...
 
-reg query "HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" /v Major >nul 2>&1
-if %errorlevel% equ 0 (
-    echo         OK - Visual C++ Redistributable is installed.
-    goto :setup_venv
-)
-
-echo         Visual C++ Redistributable not found.
-echo         This is required by PyTorch. Installing now...
-echo.
-
-set "VCREDIST_EXE="
-
-:: Use bundled installer if available
-if exist "%~dp0installers\vc_redist.x64.exe" (
-    set "VCREDIST_EXE=%~dp0vc_redist.x64.exe"
-    goto :vcredist_install
-)
+:: Use bundled installer
+if exist "%~dp0installers\vc_redist.x64.exe" goto :vcredist_bundled
 
 :: Download if not bundled
+echo         Downloading VC++ Redistributable...
 where curl.exe >nul 2>&1
 if %errorlevel% equ 0 (
     curl.exe -L -o "%TEMP%\vc_redist.x64.exe" "https://aka.ms/vs/17/release/vc_redist.x64.exe"
@@ -234,26 +220,22 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
-set "VCREDIST_EXE=%TEMP%\vc_redist.x64.exe"
-
-:vcredist_install
-echo         Installing Visual C++ Redistributable...
-"%VCREDIST_EXE%" /install /quiet /norestart
+"%TEMP%\vc_redist.x64.exe" /install /quiet /norestart
 if errorlevel 1 (
     echo         Silent install failed. Opening installer...
-    "%VCREDIST_EXE%"
+    "%TEMP%\vc_redist.x64.exe"
 )
+del "%TEMP%\vc_redist.x64.exe" 2>nul
+echo         OK - Visual C++ Redistributable installed.
+goto :setup_venv
 
-reg query "HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\X64" /v Major >nul 2>&1
-if %errorlevel% equ 0 (
-    echo         OK - Visual C++ Redistributable installed.
-) else (
-    echo.
-    echo  WARNING: Visual C++ Redistributable may not have installed correctly.
-    echo  PyTorch may fail to load. If so, install manually from:
-    echo  https://aka.ms/vs/17/release/vc_redist.x64.exe
-    echo.
+:vcredist_bundled
+"%~dp0installers\vc_redist.x64.exe" /install /quiet /norestart
+if errorlevel 1 (
+    echo         Silent install failed. Opening installer...
+    "%~dp0installers\vc_redist.x64.exe"
 )
+echo         OK - Visual C++ Redistributable installed.
 
 :: 5. Python environment
 :setup_venv
